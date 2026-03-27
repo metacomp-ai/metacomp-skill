@@ -1,6 +1,16 @@
 # metacomp-skill
 
-Claude Code skills for Web3 security — powered by [MetaComp VisionX](https://www.metacomp.ai).
+AI skills for the [MetaComp](https://www.metacomp.ai) platform.
+
+Works with any MCP-compatible AI client. **Optimized for Claude.**
+
+---
+
+## About MetaComp
+
+MetaComp holds a **Major Payment Institution (MPI) license** issued by the Monetary Authority of Singapore (MAS). Our mission is to build the full-stack infrastructure for compliant, intelligent payments — from on-chain risk and KYT, to payment execution, settlement, and compliance across both Web3 and traditional finance rails.
+
+The skills in this repository bring MetaComp's capabilities directly into the AI tools developers and analysts already use. As our services grow, more skills will be added here.
 
 ---
 
@@ -8,7 +18,7 @@ Claude Code skills for Web3 security — powered by [MetaComp VisionX](https://w
 
 ### `metacomp-visionx-kyt`
 
-A KYT (Know Your Transaction) skill that checks the security of Web3 wallets and transactions using the **MetaComp VisionX** MCP server. It aggregates risk signals from multiple on-chain analytics vendors and presents a structured, cross-vendor security report.
+A KYT (Know Your Transaction) skill powered by **MetaComp VisionX**, our Web3 security service. It checks the risk of wallets and transactions by aggregating signals from multiple on-chain analytics vendors and presenting a structured, cross-vendor security report.
 
 **Triggers automatically when you:**
 - Paste a wallet address (`0x...`, Bitcoin address, Tron address)
@@ -21,34 +31,43 @@ A KYT (Know Your Transaction) skill that checks the security of Web3 wallets and
 - **Wallet report** — risk score, exposure breakdown by category (scam, sanctions, mixing, etc.), transaction timeline, cross-vendor comparison, and a risk conclusion card
 - **Transaction report** — transaction-level risk assessment + counterparty wallet report in one response
 
-**MCP server required:** `metacomp-mcp` (`https://www.metacomp.ai/mcp`)
+---
+
+## Platform Support
+
+| Platform | Support | Notes |
+|---|---|---|
+| Claude (web / Claude Code) | Best | Native skill format with full report rendering |
+| Cursor / Windsurf / Cline | Good | Load `SKILL.md` as system prompt + connect MCP server |
+| Other MCP-compatible clients | Basic | Connect MCP server; manual prompt guidance may be needed |
 
 ---
 
 ## Setup
 
-### 1. Add the MCP connector
+### Step 1 — Connect the MCP server
 
-In the Claude web client:
+Add `https://www.metacomp.ai/mcp` as a custom MCP server in your AI client and authorize with your `sk-...` API key.
 
-**Sidebar → Customize → Connectors → + → Add custom connector**
+> No API key? Apply at [metacomp.ai](https://www.metacomp.ai)
+
+**For Claude web client:**
+
+Sidebar → **Customize** → **Connectors** → **+** → **Add custom connector**
 
 | Field | Value |
 |---|---|
 | Name | `metacomp-visionx-kyt` |
 | URL | `https://www.metacomp.ai/mcp` |
 
-### 2. Authorize with your API key
+Then: Connectors → find **metacomp-visionx-kyt** → **Connect** → enter API key → **Allow**
 
-Customize → Connectors → find **metacomp-visionx-kyt** → **Connect**
+### Step 2 — Load the skill
 
-Enter your `sk-...` API key → **Allow**
+Download `Metacomp-VisionX-KYT.zip` from this repository.
 
-> No API key? Apply at [metacomp.ai](https://www.metacomp.ai)
-
-### 3. Install the skill
-
-Download `Metacomp-VisionX-KYT.zip` from this repository and import it into Claude Code. The skill file (`SKILL.md`) and its sub-skills (`subSkills/`) will be loaded automatically.
+- **Claude Code** — import the zip directly; the skill activates automatically
+- **Other clients** — paste the contents of `SKILL.md` into your system prompt or custom instructions
 
 ---
 
@@ -56,15 +75,9 @@ Download `Metacomp-VisionX-KYT.zip` from this repository and import it into Clau
 
 ```
 metacomp-skill/
-├── Metacomp-VisionX-KYT.zip     # Skill package (SKILL.md + subSkills/)
+├── Metacomp-VisionX-KYT.zip     # Skill package
 │   ├── SKILL.md                 # Main skill definition
-│   └── subSkills/
-│       ├── wallet-report.md         # Wallet report layout spec
-│       ├── wallet-exposure-tables.md # Exposure detail table spec
-│       ├── wallet-risk-card.md      # Risk conclusion card widget
-│       ├── transaction-report.md    # Transaction report layout spec
-│       ├── visualization.md         # Widget & layout rules
-│       └── chart-spec.md            # Spider chart rendering spec
+│   └── subSkills/               # Report layout & rendering specs
 └── README.md
 ```
 
@@ -72,7 +85,7 @@ metacomp-skill/
 
 ## Tool Reference
 
-The skill calls two MCP tools provided by the MetaComp VisionX server:
+The skill calls two MCP tools exposed by the MetaComp platform:
 
 | Tool | Input | Purpose |
 |---|---|---|
