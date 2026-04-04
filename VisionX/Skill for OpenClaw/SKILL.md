@@ -284,7 +284,7 @@ Fill all `[PLACEHOLDER]` values with real data before outputting. Never output p
               { "name": "v3",  "display_name": "Vendor 3", "width": "110px", "horizontal_align": "center", "data_type": "text" }
             ],
             "rows": [
-              "INSTRUCTION: One row per unique tagTypeVerbose across beosin.directIncoming / elliptic.directIncoming / merklescience.directIncoming. Cell rule: found + isHighRisk=true → ⚠️ High · found + isHighRisk=false → ✅ Low · not found OR vendor array is empty → —. If ALL vendors empty: single row cat='— No data from any vendor —'.",
+              "INSTRUCTION: One row per unique tagTypeVerbose across vendor1.directIncoming / vendor2.directIncoming / vendor3.directIncoming. Cell rule: found + isHighRisk=true → ⚠️ High · found + isHighRisk=false → ✅ Low · not found OR vendor array is empty → —. If ALL vendors empty: single row cat='— No data from any vendor —'.",
               {
                 "cat": { "tag": "lark_md", "content": "[tagTypeVerbose]" },
                 "v1":  { "tag": "lark_md", "content": "[⚠️ High / ✅ Low / —]" },
@@ -306,7 +306,7 @@ Fill all `[PLACEHOLDER]` values with real data before outputting. Never output p
               { "name": "v3",  "display_name": "Vendor 3", "width": "110px", "horizontal_align": "center", "data_type": "text" }
             ],
             "rows": [
-              "INSTRUCTION: Same rules as above, using beosin.directOutgoing / elliptic.directOutgoing / merklescience.directOutgoing.",
+              "INSTRUCTION: Same rules as above, using vendor1.directOutgoing / vendor2.directOutgoing / vendor3.directOutgoing.",
               {
                 "cat": { "tag": "lark_md", "content": "[tagTypeVerbose]" },
                 "v1":  { "tag": "lark_md", "content": "[⚠️ High / ✅ Low / —]" },
@@ -328,7 +328,7 @@ Fill all `[PLACEHOLDER]` values with real data before outputting. Never output p
               { "name": "v3",  "display_name": "Vendor 3", "width": "110px", "horizontal_align": "center", "data_type": "text" }
             ],
             "rows": [
-              "INSTRUCTION: Same rules, using beosin.indirectIncoming / elliptic.indirectIncoming / merklescience.indirectIncoming.",
+              "INSTRUCTION: Same rules, using vendor1.indirectIncoming / vendor2.indirectIncoming / vendor3.indirectIncoming.",
               {
                 "cat": { "tag": "lark_md", "content": "[tagTypeVerbose]" },
                 "v1":  { "tag": "lark_md", "content": "[⚠️ High / ✅ Low / —]" },
@@ -350,7 +350,7 @@ Fill all `[PLACEHOLDER]` values with real data before outputting. Never output p
               { "name": "v3",  "display_name": "Vendor 3", "width": "110px", "horizontal_align": "center", "data_type": "text" }
             ],
             "rows": [
-              "INSTRUCTION: Same rules, using beosin.indirectOutgoing / elliptic.indirectOutgoing / merklescience.indirectOutgoing.",
+              "INSTRUCTION: Same rules, using vendor1.indirectOutgoing / vendor2.indirectOutgoing / vendor3.indirectOutgoing.",
               {
                 "cat": { "tag": "lark_md", "content": "[tagTypeVerbose]" },
                 "v1":  { "tag": "lark_md", "content": "[⚠️ High / ✅ Low / —]" },
