@@ -12,7 +12,7 @@
 
 - Empty array → gray placeholder slice/bar labeled "No data" (transaction charts)
 - Null field → zero baseline
-- Spider panels: render only when **3+ valid entries** exist (see `chart-spec.md`). Fewer → skip the panel entirely, output nothing
+- Donut panels: skip only when **both** source arrays for that direction are empty (see `chart-spec.md`)
 
 ---
 
@@ -23,7 +23,7 @@
 - ❌ No fixed height on outer container — no `height:`, `max-height:`, `overflow:scroll/auto`
 - ❌ No scroll container on the outer widget container — no `overflow:scroll/auto` with fixed height
 - ✅ Inner sections MAY use `display:flex` for side-by-side elements (e.g. chart + legend within one panel)
-- ❌ Do NOT use multi-column grid for spider chart panels — full-width single column only (see `chart-spec.md`)
+- ❌ Do NOT use multi-column grid for donut chart panels — full-width single column only (see `chart-spec.md`)
 - ❌ Do NOT output High Risk Categories HTML as standalone text — embed in `show_widget` payload
 
 ### ✅ Correct outer structure
@@ -65,12 +65,10 @@ If this is a counterparty wallet (get_transaction_security was called), change t
 
 | Data | Chart type | Content |
 |---|---|---|
-| `incomingDirectExposure[]` (wallet) | Spider | Direct Incoming Exposure |
-| `incomingIndirectExposure[]` (wallet) | Spider | Indirect Incoming Exposure |
-| `outgoingDirectExposure[]` (wallet) | Spider | Direct Outgoing Exposure |
-| `outgoingIndirectExposure[]` (wallet) | Spider | Indirect Outgoing Exposure |
+| `directIncoming[]` + `indirectIncoming[]` (wallet) | Donut | Incoming Exposure (Direct + Indirect) |
+| `directOutgoing[]` + `indirectOutgoing[]` (wallet) | Donut | Outgoing Exposure (Direct + Indirect) |
 
-Spider panels are conditional — render only when validCount ≥ 3, otherwise skip entirely (see `chart-spec.md`).
+Donut panels skip only when both source arrays for that direction are empty (see `chart-spec.md`).
 
 ---
 
@@ -96,7 +94,7 @@ For slices `> 5%`: draw pointer label outside using `afterDraw` hook:
 
 ## High-Risk Category Summary Tables — Inside show_widget #1 (Wallet Only)
 
-> ⚠️ These are NOT the Exposure Detail Tables in `wallet-exposure-tables.md` (Step ⑧).
+> ⚠️ These are NOT the Exposure Detail Tables in `wallet-exposure-tables.md` (Step ⑥).
 > These go **inside show_widget #1 payload** and show only `isHighRisk=true` entries with 9 fixed rows.
 
 Render 4 HTML tables in 2×2 layout inside the show_widget #1 payload. Never as standalone text.

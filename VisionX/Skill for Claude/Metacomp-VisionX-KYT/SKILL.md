@@ -1,5 +1,6 @@
 ---
 name: metacomp-visionx-kyt
+version: 1.0.0
 description: >
   Check Web3 wallet or transaction security using the MetaComp VisionX
   Trigger when the user mentions: wallet address (0x..., Bitcoin address, Tron address),
@@ -60,8 +61,8 @@ Do not proceed until this line appears in the response.
       No preface, no heading, no blockquote. Go straight to Step ②.
 
 ② **show_widget #1** — `read_me(["chart"])` first, then widget:
-   section header (colored title + divider) + metric cards + 4 High Risk Exposure Tables + 4 spider chart panels
-   (see `visualization.md` for layout; `chart-spec.md` for spider panel logic)
+   section header (colored title + divider) + metric cards + 4 High Risk Exposure Tables + 2 donut chart panels
+   (see `visualization.md` for layout; `chart-spec.md` for donut panel logic)
 
 ③ **Wallet Security Report** — 4 sub-sections (see `wallet-report.md` Step ③):
    Basic Info / Transaction Timeline / Risk Exposure Breakdown / High Risk Categories
@@ -90,7 +91,7 @@ Do not proceed until this line appears in the response.
 **Wallet:**
 ```
 ☐ Analysis Preface output? [skip if counterparty]
-☐ show_widget #1: metric cards + 4 Exposure Tables + spider panels (chart or skip per panel)?
+☐ show_widget #1: metric cards + 4 Exposure Tables + donut panels (skip panel if both source arrays empty)?
 ☐ Wallet Security Report — all 5 sub-sections:
      Basic Info table?
      Transaction Timeline table + activity comment?

@@ -1,4 +1,4 @@
-# Wallet Report — Step ③: 🚨 Risk Conclusion Card
+# Wallet Report — Step ⑦: 🚨 Risk Conclusion Card
 
 Render a single prominent card **immediately after the visualization widget** via a dedicated `show_widget` call.
 
