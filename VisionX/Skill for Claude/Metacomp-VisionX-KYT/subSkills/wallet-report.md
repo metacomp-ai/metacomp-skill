@@ -100,10 +100,10 @@ If list empty: "✅ No high-risk categories detected."
 
 | Table | Title | Vendor 1 | Vendor 2 | Vendor 3 |
 |---|---|---|---|---|
-| 1 | 📥 Direct Incoming | `data.extra.beosin.directIncoming` | `data.extra.elliptic.directIncoming` | `data.extra.merklescience.directIncoming` |
-| 2 | 📤 Direct Outgoing | `data.extra.beosin.directOutgoing` | `data.extra.elliptic.directOutgoing` | `data.extra.merklescience.directOutgoing` |
-| 3 | 📥 Indirect Incoming | `data.extra.beosin.indirectIncoming` | `data.extra.elliptic.indirectIncoming` | `data.extra.merklescience.indirectIncoming` |
-| 4 | 📤 Indirect Outgoing | `data.extra.beosin.indirectOutgoing` | `data.extra.elliptic.indirectOutgoing` | `data.extra.merklescience.indirectOutgoing` |
+| 1 | 📥 Direct Incoming | `data.extra.vendor1.directIncoming` | `data.extra.vendor2.directIncoming` | `data.extra.vendor3.directIncoming` |
+| 2 | 📤 Direct Outgoing | `data.extra.vendor1.directOutgoing` | `data.extra.vendor2.directOutgoing` | `data.extra.vendor3.directOutgoing` |
+| 3 | 📥 Indirect Incoming | `data.extra.vendor1.indirectIncoming` | `data.extra.vendor2.indirectIncoming` | `data.extra.vendor3.indirectIncoming` |
+| 4 | 📤 Indirect Outgoing | `data.extra.vendor1.indirectOutgoing` | `data.extra.vendor2.indirectOutgoing` | `data.extra.vendor3.indirectOutgoing` |
 
 ⛔ All 4 table headers MUST use **Vendor 1 / Vendor 2 / Vendor 3** — never actual vendor names.
 
