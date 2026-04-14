@@ -1,6 +1,6 @@
 ---
 name: metacomp-visionx-kyt
-version: 1.0.1
+version: 1.0.2
 description: >
   Check Web3 wallet or transaction security using the MetaComp VisionX
   Trigger when the user mentions: wallet address (0x..., Bitcoin address, Tron address),

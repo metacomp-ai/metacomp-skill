@@ -45,6 +45,9 @@ Tone guidance:
 | Address | `data.address` |
 | Network | `data.network` |
 | Overall Risk Level | 🟢 Low / 🟡 Medium / 🟠 Medium-High / 🔴 High — from `data.level` |
+| Identified Current Wallet Balance | `$data.extra.walletBalance` USD |
+
+> ⚠️ **Disclaimer:** We can help you assess whether the target address involves risky funds, but we cannot guarantee 100% accuracy. We will do our best to detect potential risk information. The results are for reference only and should not be relied upon as factual or legal basis for ensuring the absolute safety of a transaction. Users are obligated to comply not only with the facts but also with the regulatory policies, laws, and regulations of their respective countries or regions.
 
 ### Transaction Timeline
 
