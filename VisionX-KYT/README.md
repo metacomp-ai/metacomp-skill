@@ -58,7 +58,7 @@ VisionX is the compliance backbone of the MetaComp platform:
 
 VisionX's Web3 KYT capability is available today as an AI skill for Claude and other MCP-compatible clients.
 
-→ See [`metacomp-visionx-kyt`](../README.md#skills) to get started
+→ See [`VisionX-KYT`](../README.md#skills) to get started
 
 The full VisionX engine — including unified risk profiles, fiat monitoring, and AML surveillance — is in development. API documentation will be published here when available.
 

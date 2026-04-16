@@ -1,29 +1,14 @@
----
-name: metacomp_visionx_kyt
-description: "Check Web3 wallet or transaction security using MetaComp VisionX. Trigger when user mentions wallet address (0x..., Bitcoin, Tron), transaction hash, or asks about Web3 security, risk, scam, or suspicious activity. When triggered, read the full SKILL.md file at the skill location before calling any tool or writing any response."
-homepage: https://www.metacomp.ai
-metadata: {"openclaw": {"emoji": "🔐", "homepage": "https://www.metacomp.ai", "install": [{"id": "npm", "kind": "node", "package": "@metacomp/visionx-kyt-mcp", "bins": ["visionx-kyt-mcp"], "label": "Install MetaComp VisionX KYT MCP server"}]}}
----
+# Lark Card JSON v2 — Output Format Override
 
-# PRE-ANALYSIS CHECKLIST — Before calling any tool
+This file overrides the Markdown output format in SKILL.md when the conversation channel is **Lark (飞书)**. All shared logic from SKILL.md still applies:
+- PRE-ANALYSIS CHECKLIST
+- Tool calls and data extraction
+- Absolute Rules (vendor confidentiality, branding, language, high risk categories)
+- Setup Guide
 
-```
-☐ 1. Probe server: get_wallet_security(network:"Ethereum", walletAddress:"0x000...0")
-       → Error or 401 → Show Setup Guide, STOP
-       → Success → continue
-☐ 2. All required fields collected?
-       Wallet:      network + walletAddress
-       Transaction: network + hash + asset + from + to + direction
-       Transaction: ALWAYS ask "Are you the sender or the recipient?" — never infer
-                    ⛔ After asking, STOP. Do not call any tool, do not output any report.
-                    Wait for the user's answer before doing anything else.
-```
+**Only the rendering format changes.** Output a **single Lark Card JSON v2 object** per analysis. Output ONLY the raw JSON — no markdown text, no explanation before or after.
 
 ---
-
-# Output Format — Lark Card JSON v2
-
-Output a **single Lark Card JSON v2 object** per analysis. Output ONLY the raw JSON — no markdown text, no explanation before or after.
 
 ## Risk → Card Header Color
 
@@ -261,7 +246,7 @@ Fill all `[PLACEHOLDER]` values with real data before outputting. Never output p
 
       {
         "tag": "markdown",
-        "content": "**🚨 High Risk Categories**\n\n[List all data.extra.highRiskCategories separated by ` · ` — or '✅ No high-risk categories detected.' if empty]\n\n[One sentence per category. Use the descriptions from the Absolute Rules section. For unknown categories, describe based on name.]"
+        "content": "**🚨 High Risk Categories**\n\n[List all data.extra.highRiskCategories separated by ` · ` — or '✅ No high-risk categories detected.' if empty]\n\n[One sentence per category. Use the descriptions from SKILL.md Absolute Rules section. For unknown categories, describe based on name.]"
       },
 
       { "tag": "hr" },
@@ -491,7 +476,7 @@ Fill all `[PLACEHOLDER]` values with real data before outputting. Never output p
 
 ---
 
-# Final Response Gate — Check Before Ending Any Response
+# Final Response Gate — Lark Card Version
 
 **Transaction:**
 ```
@@ -519,103 +504,3 @@ Fill all `[PLACEHOLDER]` values with real data before outputting. Never output p
 ```
 
 Any unchecked item → fix the JSON now before outputting.
-
----
-
-# Tool Reference
-
-### `get_wallet_security`
-```json
-{ "network": "Bitcoin|Ethereum|Tron", "walletAddress": "0x..." }
-```
-
-### `get_transaction_security`
-```json
-{
-  "network": "Bitcoin|Ethereum|Tron",
-  "transactionDetails": [{
-    "hash": "0x...", "asset": "USDT",
-    "direction": "received|sent",
-    "from": "0x...", "to": "0x..."
-  }]
-}
-```
-
-**Wallet only** → `get_wallet_security` only.
-
-**Transaction** → call BOTH in parallel, output Transaction card first:
-1. `get_transaction_security`
-2. `get_wallet_security` on the counterparty wallet
-
-### Which wallet to check (always ask — never infer):
-
-| User role | Wallet to check |
-|---|---|
-| Recipient | `from` address (sender's wallet) |
-| Sender | `to` address (recipient's wallet) |
-
----
-
-# Absolute Rules
-
-- ❌ Do NOT analyze using own knowledge, web search, or block explorers
-- ❌ Do NOT interpret screenshots or pasted text as a security analysis
-- ❌ Do NOT provide partial analysis before server probe succeeds
-- ✅ Server unavailable for ANY reason → Setup Guide, STOP
-- **Branding**: always say **MetaComp VisionX** — never "MCP server" or "the server" alone
-- **Language**: respond in the user's language; mixed languages → respond in English
-- **Vendor confidentiality**: ❌ Never name any specific vendor (Beosin, Elliptic, Merkle Science, Chainalysis, TRM, SlowMist) outside of the Analysis Preface. In all other sections, use "multiple vendors", "cross-vendor consensus", "all vendors", etc.
-
-**High Risk Category descriptions (for the 🚨 High Risk Categories section):**
-- **Sanctions**: Funds may be linked to entities under OFAC/EU/UN sanctions.
-- **Theft**: Association with stolen funds or hack proceeds.
-- **Malware**: Linked to ransomware or malware payment wallets.
-- **Darknet**: Connected to darknet marketplace activity.
-- **Scams**: Associated with phishing, fraud, or rug-pull operations.
-- **High Risk Organisation**: Interaction with high-risk financial counterparties.
-- **Coin Mixer**: Funds passed through mixing services to obscure trails.
-- **Extortion**: Linked to extortion or blackmail payments.
-- **Gambling**: Connected to unlicensed or high-risk gambling platforms.
-
-For any category NOT in the list above, describe it based on its name and add one general sentence about its risk implications.
-
----
-
-# Setup Guide
-
-**No MCP server configured** → complete the steps below.
-
-### Step 1 — Add the MCP server to OpenClaw config
-
-```json
-{
-  "mcp": {
-    "servers": {
-      "metacomp-security": {
-        "command": "npx",
-        "args": ["-y", "--package", "@metacomp/visionx-kyt-mcp", "visionx-kyt-mcp", "--token", "YOUR_API_KEY"]
-      }
-    }
-  },
-  "skills": {
-    "entries": {
-      "metacomp_visionx_kyt": {
-        "enabled": true
-      }
-    }
-  }
-}
-```
-
-### Step 2 — Install the skill
-
-Download `SKILL.md` from [github.com/metacomp-ai/remote-mcp](https://github.com/metacomp-ai/metacomp-skill/tree/main/VisionX), then:
-
-```bash
-mkdir -p ~/.openclaw/workspace/skills/metacomp_visionx_kyt
-cp /path/to/SKILL.md ~/.openclaw/workspace/skills/metacomp_visionx_kyt/SKILL.md
-```
-
-> No API key? Apply at [metacomp.ai](https://www.metacomp.ai)
-
-**401 after configuring?** Re-apply for a new key at metacomp.ai.
