@@ -32,8 +32,7 @@ jobs:
             echo "withdrawal=$(get_ver MetaComp-Withdrawal/SKILL.md)"
             echo "swap=$(get_ver MetaComp-Swap/SKILL.md)"
             echo "wealth=$(get_ver MetaComp-Wealth/SKILL.md)"
-            echo "visionx_claude=$(get_ver 'MetaComp-VisionX/Skill for Claude/SKILL.md')"
-            echo "visionx_openclaw=$(get_ver 'MetaComp-VisionX/Skill for OpenClaw/SKILL.md')"
+            echo "visionx=$(get_ver MetaComp-VisionX/SKILL.md)"
           } | tee -a "$GITHUB_OUTPUT"
 
       - name: Build bundles per environment
@@ -42,8 +41,7 @@ jobs:
           WITHDRAWAL_VER: ${{ steps.ver.outputs.withdrawal }}
           SWAP_VER: ${{ steps.ver.outputs.swap }}
           WEALTH_VER: ${{ steps.ver.outputs.wealth }}
-          VISIONX_CLAUDE_VER: ${{ steps.ver.outputs.visionx_claude }}
-          VISIONX_OPENCLAW_VER: ${{ steps.ver.outputs.visionx_openclaw }}
+          VISIONX_VER: ${{ steps.ver.outputs.visionx }}
           ENVS: ${{ inputs.environments }}
         run: |
           set -euo pipefail
@@ -59,15 +57,13 @@ jobs:
             rm -rf "$stage"
             mkdir -p "$inner"
 
-            # Copy + rename each skill into a flat staging directory.
-            # Folder names inside the zip match the SKILL.md `name:` field so
-            # install paths line up (e.g. ~/.openclaw/workspace/skills/MetaComp-VisionX-OpenClaw).
-            cp -r MetaComp-Deposit                                "$stage/MetaComp-Deposit"
-            cp -r MetaComp-Withdrawal                             "$stage/MetaComp-Withdrawal"
-            cp -r MetaComp-Swap                                   "$stage/MetaComp-Swap"
-            cp -r MetaComp-Wealth                                 "$stage/MetaComp-Wealth"
-            cp -r "MetaComp-VisionX/Skill for Claude"           "$stage/MetaComp-VisionX-Claude"
-            cp -r "MetaComp-VisionX/Skill for OpenClaw"           "$stage/MetaComp-VisionX-OpenClaw"
+            # Copy each skill into a flat staging directory; folder names
+            # inside the zip match the SKILL.md `name:` field.
+            cp -r MetaComp-Deposit    "$stage/MetaComp-Deposit"
+            cp -r MetaComp-Withdrawal "$stage/MetaComp-Withdrawal"
+            cp -r MetaComp-Swap       "$stage/MetaComp-Swap"
+            cp -r MetaComp-Wealth     "$stage/MetaComp-Wealth"
+            cp -r MetaComp-VisionX    "$stage/MetaComp-VisionX"
 
             # Strip macOS metadata files before zipping.
             find "$stage" \( -name ".DS_Store" -o -name "__MACOSX" \) -exec rm -rf {} + 2>/dev/null || true
@@ -82,14 +78,13 @@ jobs:
               -exec sed -i "s|https://demo\.metacomp\.ai|https://${env}.metacomp.ai|g" {} +
 
             # Inner zips: one per skill, name = <skill>-<env>-<version>.zip
-            (cd "$stage" && zip -qr "_inner/MetaComp-Deposit-${env}-${DEPOSIT_VER}.zip"                   MetaComp-Deposit)
-            (cd "$stage" && zip -qr "_inner/MetaComp-Withdrawal-${env}-${WITHDRAWAL_VER}.zip"            MetaComp-Withdrawal)
-            (cd "$stage" && zip -qr "_inner/MetaComp-Swap-${env}-${SWAP_VER}.zip"                        MetaComp-Swap)
-            (cd "$stage" && zip -qr "_inner/MetaComp-Wealth-${env}-${WEALTH_VER}.zip"                    MetaComp-Wealth)
-            (cd "$stage" && zip -qr "_inner/MetaComp-VisionX-Claude-${env}-${VISIONX_CLAUDE_VER}.zip"    MetaComp-VisionX-Claude)
-            (cd "$stage" && zip -qr "_inner/MetaComp-VisionX-OpenClaw-${env}-${VISIONX_OPENCLAW_VER}.zip" MetaComp-VisionX-OpenClaw)
+            (cd "$stage" && zip -qr "_inner/MetaComp-Deposit-${env}-${DEPOSIT_VER}.zip"       MetaComp-Deposit)
+            (cd "$stage" && zip -qr "_inner/MetaComp-Withdrawal-${env}-${WITHDRAWAL_VER}.zip" MetaComp-Withdrawal)
+            (cd "$stage" && zip -qr "_inner/MetaComp-Swap-${env}-${SWAP_VER}.zip"             MetaComp-Swap)
+            (cd "$stage" && zip -qr "_inner/MetaComp-Wealth-${env}-${WEALTH_VER}.zip"         MetaComp-Wealth)
+            (cd "$stage" && zip -qr "_inner/MetaComp-VisionX-${env}-${VISIONX_VER}.zip"       MetaComp-VisionX)
 
-            # Outer bundle: flat zip of the 6 inner zips
+            # Outer bundle: flat zip of the 5 inner zips
             (cd "$inner" && zip -qj "$GITHUB_WORKSPACE/dist/metacomp-skills-${env}.zip" *.zip)
 
             ls -la "dist/metacomp-skills-${env}.zip"
