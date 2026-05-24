@@ -44,25 +44,15 @@ Deep transaction-level intelligence for both fiat and crypto flows. For Web3, Vi
 
 ---
 
-## Role in the MetaComp Ecosystem
-
-VisionX is the compliance backbone of the MetaComp platform:
-
-- **PayX** relies on VisionX to screen every payment in real time before settlement
-- **StableX** routes transactions through compliant corridors based on VisionX signals
-- **AgentX** exposes VisionX capabilities to AI agents for autonomous compliance checks
-
----
-
 ## Try It Now
 
 VisionX's Web3 KYT capability is available today as an AI skill for Claude and other MCP-compatible clients.
 
-→ See [`VisionX-KYT`](../README.md#skills) to get started
+→ See [`MetaComp-VisionX`](../README.md#skills) to get started
 
 The full VisionX engine — including unified risk profiles, fiat monitoring, and AML surveillance — is in development. API documentation will be published here when available.
 
-> Interested in early access? Reach out at [metacomp.ai](https://www.metacomp.ai)
+> Interested in early access? Reach out at [metacomp.ai](https://demo.metacomp.ai)
 
 ---
 

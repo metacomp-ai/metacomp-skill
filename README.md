@@ -1,101 +1,111 @@
-# metacomp-skill
+# MetaComp Agent Skills
 
-AI skills for the [MetaComp](https://www.metacomp.ai) platform.
-
-Works with any MCP-compatible AI client. **Optimized for Claude.**
+MCP-powered skills that expose MetaComp's Deposit, Withdrawal, Swap, Wealth, and VisionX products to Claude and other MCP-compatible clients. Each skill is a self-contained folder containing a `SKILL.md` entry point, supporting `subSkills/`, and any references the agent loads at runtime.
 
 ---
 
-## About MetaComp
+## Download
 
-MetaComp holds a **Major Payment Institution (MPI) license** issued by the Monetary Authority of Singapore (MAS). Our mission is to build the full-stack infrastructure for compliant, intelligent payments — from on-chain risk and KYT, to payment execution, settlement, and compliance across both Web3 and traditional finance rails.
+Skills are released as **one bundle per backend environment**. Each bundle contains six skill `.zip`s pre-configured to talk to the matching MetaComp environment (`dev`, `demo`, `uat`, or `www` / production).
 
-The skills in this repository bring MetaComp's capabilities directly into the AI tools developers and analysts already use. As our services grow, more skills will be added here.
+→ **[GitHub Releases](https://github.com/metacomp-ai/metacomp-skill/releases/latest)**
 
----
-
-## Skills
-
-### `metacomp-visionx-kyt`
-
-A KYT (Know Your Transaction) skill powered by **MetaComp VisionX**, our Web3 security service. It checks the risk of wallets and transactions by aggregating signals from multiple on-chain analytics vendors and presenting a structured, cross-vendor security report.
-
-**Triggers automatically when you:**
-- Paste a wallet address (`0x...`, Bitcoin address, Tron address)
-- Paste a transaction hash
-- Ask about Web3 security, scam risk, or suspicious on-chain activity
-
-**Supported networks:** Ethereum · Bitcoin · Tron · *more coming soon*
-
-**What you get:**
-- **Wallet report** — risk score, exposure breakdown by category (scam, sanctions, mixing, etc.), transaction timeline, cross-vendor comparison, and a risk conclusion card
-- **Transaction report** — transaction-level risk assessment + counterparty wallet report in one response
-
----
-
-## Platform Support
-
-| Platform | Support | Notes |
-|---|---|---|
-| Claude (web / Claude Code) | Best | Native skill format with full report rendering |
-| Cursor / Windsurf / Cline | Good | Load `SKILL.md` as system prompt + connect MCP server |
-| Other MCP-compatible clients | Basic | Connect MCP server; manual prompt guidance may be needed |
-
----
-
-## Setup
-
-### Step 1 — Connect the MCP server
-
-Add `https://www.metacomp.ai/mcp` as a custom MCP server in your AI client and authorize with your `sk-...` API key.
-
-> No API key? Apply at [metacomp.ai](https://www.metacomp.ai)
-
-**For Claude web client:**
-
-Sidebar → **Customize** → **Connectors** → **+** → **Add custom connector**
-
-| Field | Value |
+| Outer bundle | Backend it points to |
 |---|---|
-| Name | `metacomp-visionx-kyt` |
-| URL | `https://www.metacomp.ai/mcp` |
+| `metacomp-skills-dev.zip`  | `https://dev.metacomp.ai`  |
+| `metacomp-skills-demo.zip` | `https://demo.metacomp.ai` |
+| `metacomp-skills-uat.zip`  | `https://uat.metacomp.ai`  |
+| `metacomp-skills-www.zip`  | `https://www.metacomp.ai` (production) |
 
-Then: Connectors → find **metacomp-visionx-kyt** → **Connect** → enter API key → **Allow**
+Each outer bundle contains six per-skill zips with the version baked into the filename:
 
-### Step 2 — Load the skill
+```
+metacomp-skills-demo.zip
+├── MetaComp-Deposit-demo-0.5.3.zip
+├── MetaComp-Withdrawal-demo-0.4.1.zip
+├── MetaComp-Swap-demo-0.5.2.zip
+├── MetaComp-Wealth-demo-0.6.0.zip
+├── MetaComp-VisionX-Claude-demo-1.3.0.zip
+└── MetaComp-VisionX-OpenClaw-demo-2.0.0.zip
+```
 
-Download `Metacomp-VisionX-KYT.zip` from this repository.
+### Install
 
-- **Claude Code** — import the zip directly; the skill activates automatically
-- **Other clients** — paste the contents of `SKILL.md` into your system prompt or custom instructions
+1. Download the bundle for your target environment from the release page above.
+2. Unzip the outer bundle, then unzip the individual skill(s) you want.
+3. Place the resulting folder where your client looks for skills:
+   - **Claude (Desktop / Web):** upload the folder through *Customize → Skills*.
+   - **OpenClaw:** copy the folder into `~/.openclaw/workspace/skills/`.
+4. Set up the MCP connector — see [Connecting the MCP servers](#connecting-the-mcp-servers) below.
 
 ---
 
-## File Structure
+## Skills at a glance
 
-```
-metacomp-skill/
-├── Metacomp-VisionX-KYT.zip     # Skill package
-│   ├── SKILL.md                 # Main skill definition
-│   └── subSkills/               # Report layout & rendering specs
-└── README.md
-```
-
----
-
-## Tool Reference
-
-The skill calls two MCP tools exposed by the MetaComp platform:
-
-| Tool | Input | Purpose |
+| Skill | Version | Purpose |
 |---|---|---|
-| `get_wallet_security` | network + wallet address | Analyze a wallet's risk profile |
-| `get_transaction_security` | network + transaction details | Analyze a transaction's risk signals |
-
-For a transaction query, both tools are called in parallel — `get_transaction_security` on the transaction and `get_wallet_security` on the counterparty wallet.
+| [MetaComp-Deposit](./MetaComp-Deposit) | 0.5.3 | Deposit fiat or crypto into a MetaComp account; also serves balance / portfolio queries |
+| [MetaComp-Withdrawal](./MetaComp-Withdrawal) | 0.4.1 | Withdraw fiat or crypto, distinguishing first-party and third-party destinations |
+| [MetaComp-Swap](./MetaComp-Swap) | 0.5.2 | Currency exchange across the supported fiat and crypto pair matrix |
+| [MetaComp-Wealth](./MetaComp-Wealth) | 0.6.0 | Browse and subscribe to MetaComp Fixed Income Products (FIP) |
+| [MetaComp-VisionX](./MetaComp-VisionX) | 1.3.0 / 2.0.0 | Risk screening for Web3 wallets and transactions |
 
 ---
 
-## License
+## Skill descriptions
 
-MIT — see [LICENSE](./LICENSE)
+### MetaComp-Deposit
+Handles fiat and crypto deposits into a MetaComp account. For fiat the skill returns wire-transfer instructions for the selected currency. For crypto it returns the network-specific wallet address as inline text plus an HTML QR-code artifact. The same entry point also serves pure balance queries: it renders a 5-account portfolio overview (Fiat, Crypto, Investment Fiat, Quarantine Portfolio, Investment Product) and per-currency detail, then exits without entering the deposit flow.
+
+### MetaComp-Withdrawal
+Handles outbound transfers of fiat and crypto. The skill differentiates **first-party** (the user's own bank account or wallet) from **third-party** (a beneficiary other than the user) withdrawals at the start of the flow, since each has different regulatory requirements. Third-party crypto sends attach the required compliance document IDs internally. The skill collects destination, amount, and any memo or reference fields, then renders a confirmation summary before submitting the transaction.
+
+### MetaComp-Swap
+Performs currency exchange across supported fiat-fiat, fiat-crypto, and crypto-crypto pairs. The skill fetches the user's currency pair matrix and account summary in parallel, validates the requested source/target/amount against available balance, and obtains a quote. The quote (source amount, target amount, rate, fee) is shown to the user and is valid for 60 seconds; on confirmation within the window the trade executes against the quoted rate, otherwise it is re-quoted at execution time.
+
+### MetaComp-Wealth
+Subscribes the user to MetaComp Fixed Income Products. The flow runs an investor pre-check (eligibility, risk tier, jurisdiction), then renders the catalog of products the user qualifies for with APY, term, liquidity terms, and minimum holding period. Subscription requires the user to repeat a verbatim agreement-acceptance phrase generated from the product's legal documents; only an exact match is treated as consent before the subscription call is made.
+
+### MetaComp-VisionX
+Returns a structured risk report for a Web3 wallet address or transaction hash. The wallet report includes entity identification, risk-source breakdown by category (sanctions, scam, mixer exposure, illicit counterparty, and others), and a comprehensive summary; the transaction report additionally distinguishes sender and recipient sides and flags exposure direction. Underlying data is aggregated across multiple on-chain analytics vendors. Two distributions are provided: `Skill for Claude/` uses the `metacomp-mcp` connector; `Skill for OpenClaw/` is published as the `@metacomp/visionx-kyt-mcp` npm package and additionally supports a Lark card output format when invoked from a Lark bot. See [`MetaComp-VisionX/README.md`](./MetaComp-VisionX/README.md) for the broader VisionX product context.
+
+---
+
+## Connecting the MCP servers
+
+MetaComp-Deposit, MetaComp-Withdrawal, MetaComp-Swap, and MetaComp-Wealth all use the **`metacomp mcp`** connector:
+
+1. In Claude, open *Customize → Connectors → +* and add a custom connector named `metacomp mcp` with URL `https://demo.metacomp.ai/mcp`.
+2. Connect and authorize with an `sk-...` API key. Keys are issued at [metacomp.ai](https://demo.metacomp.ai).
+3. Re-send the request. A 401 after connecting indicates the key must be re-authorized or reissued.
+
+MetaComp-VisionX for Claude uses the **`metacomp-mcp`** connector. The OpenClaw distribution installs via `npm` as `@metacomp/visionx-kyt-mcp` and reads the `METACOMP_TOKEN` environment variable.
+
+---
+
+## Repository layout
+
+```
+.
+├── MetaComp-Deposit/      SKILL.md + subSkills/
+├── MetaComp-Withdrawal/   SKILL.md + subSkills/
+├── MetaComp-Swap/         SKILL.md + subSkills/
+├── MetaComp-Wealth/       SKILL.md + subSkills/
+└── MetaComp-VisionX/
+    ├── README.md
+    ├── Skill for Claude/
+    └── Skill for OpenClaw/
+```
+
+Each `SKILL.md` carries YAML frontmatter (name, version, description, MCP server) followed by a numbered step protocol and absolute rules. Files under `subSkills/` are loaded by the entry point before any tool call.
+
+---
+
+## Contributing
+
+When editing a skill:
+
+- Bump `version:` in the affected `SKILL.md` frontmatter.
+- Keep the STEP ZERO sub-skill list and its confirmation line in sync — every file listed in Step A must appear in the confirmation in Step B.
+- Do not loosen Token Guard, the Wealth Evaluation Gate, or the QR Artifact Gate without an explicit design discussion; they are safety rails, not stylistic choices.
+- Trigger phrases (including bilingual variants) belong in the `description:` field of the frontmatter, not in the step prose.

@@ -1,5 +1,5 @@
 ---
-name: VisionX-KYT
+name: MetaComp-VisionX-Claude
 version: 1.3.0
 description: >
   Check Web3 wallet or transaction security using the MetaComp VisionX
@@ -115,13 +115,13 @@ Any unchecked item → render it now before ending the response.
 ### Step 1 — Add the Server
 Sidebar → **Customize** → **Connectors** → **+** → **Add custom connector**
 - Name: `metacomp-visionx-kyt`
-- URL: `https://www.metacomp.ai/mcp`
+- URL: `https://demo.metacomp.ai/mcp`
 
 ### Step 2 — Connect and Authorize
 Customize → Connectors → find **metacomp-visionx-kyt** → **Connect**
 Enter your `sk-...` API key → **Allow**
 
-> No API key? Apply at [metacomp.ai](https://www.metacomp.ai)
+> No API key? Apply at [metacomp.ai](https://demo.metacomp.ai)
 
 ### Step 3 — Re-send your request
 **401 after connecting?** Re-authorize or apply for a new key at metacomp.ai.

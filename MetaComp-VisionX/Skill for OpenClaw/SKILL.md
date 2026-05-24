@@ -1,9 +1,9 @@
 ---
-name: VisionX-KYT
+name: MetaComp-VisionX-OpenClaw
 description: "Check Web3 wallet or transaction security using MetaComp VisionX. Trigger when user mentions wallet address (0x..., Bitcoin, Tron), transaction hash, or asks about Web3 security, risk, scam, or suspicious activity. When triggered, read the full SKILL.md file at the skill location before calling any tool or writing any response."
 version: 2.0.0
-homepage: https://www.metacomp.ai
-metadata: {"openclaw": {"emoji": "🔐", "homepage": "https://www.metacomp.ai", "requires": {"env": ["METACOMP_TOKEN"]}, "primaryEnv": "METACOMP_TOKEN", "install": [{"id": "npm", "kind": "node", "package": "@metacomp/visionx-kyt-mcp", "bins": ["visionx-kyt-mcp"], "label": "Install MetaComp VisionX KYT MCP server (requires METACOMP_TOKEN API key from metacomp.ai)"}]}}
+homepage: https://demo.metacomp.ai
+metadata: {"openclaw": {"emoji": "🔐", "homepage": "https://demo.metacomp.ai", "requires": {"env": ["METACOMP_TOKEN"]}, "primaryEnv": "METACOMP_TOKEN", "install": [{"id": "npm", "kind": "node", "package": "@metacomp/visionx-kyt-mcp", "bins": ["visionx-kyt-mcp"], "label": "Install MetaComp VisionX KYT MCP server (requires METACOMP_TOKEN API key from metacomp.ai)"}]}}
 ---
 
 # Channel Detection — Output Format Routing
@@ -402,7 +402,7 @@ For any category NOT in the list above, describe it based on its name and add on
   },
   "skills": {
     "entries": {
-      "VisionX-KYT": {
+      "MetaComp-VisionX-OpenClaw": {
         "enabled": true
       }
     }
@@ -412,13 +412,13 @@ For any category NOT in the list above, describe it based on its name and add on
 
 ### Step 2 — Install the skill
 
-Download `SKILL.md` from [github.com/metacomp-ai/remote-mcp](https://github.com/metacomp-ai/metacomp-skill/tree/main/VisionX), then:
+Download `SKILL.md` from [github.com/metacomp-ai/remote-mcp](https://github.com/metacomp-ai/metacomp-skill/tree/main/MetaComp-VisionX), then:
 
 ```bash
-mkdir -p ~/.openclaw/workspace/skills/VisionX-KYT
-cp /path/to/SKILL.md ~/.openclaw/workspace/skills/VisionX-KYT/SKILL.md
+mkdir -p ~/.openclaw/workspace/skills/MetaComp-VisionX-OpenClaw
+cp /path/to/SKILL.md ~/.openclaw/workspace/skills/MetaComp-VisionX-OpenClaw/SKILL.md
 ```
 
-> No API key? Apply at [metacomp.ai](https://www.metacomp.ai)
+> No API key? Apply at [metacomp.ai](https://demo.metacomp.ai)
 
 **401 after configuring?** Re-apply for a new key at metacomp.ai.
