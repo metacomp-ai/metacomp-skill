@@ -25,17 +25,14 @@ metacomp-skills-demo.zip
 ├── MetaComp-Withdrawal-demo-0.4.1.zip
 ├── MetaComp-Swap-demo-0.5.2.zip
 ├── MetaComp-Wealth-demo-0.6.0.zip
-├── MetaComp-VisionX-Claude-demo-1.3.0.zip
-└── MetaComp-VisionX-OpenClaw-demo-2.0.0.zip
+└── MetaComp-VisionX-demo-1.3.0.zip
 ```
 
 ### Install
 
 1. Download the bundle for your target environment from the release page above.
 2. Unzip the outer bundle, then unzip the individual skill(s) you want.
-3. Place the resulting folder where your client looks for skills:
-   - **Claude (Desktop / Web):** upload the folder through *Customize → Skills*.
-   - **OpenClaw:** copy the folder into `~/.openclaw/workspace/skills/`.
+3. Upload the resulting folder to Claude through *Customize → Skills*.
 4. Set up the MCP connector — see [Connecting the MCP servers](#connecting-the-mcp-servers) below.
 
 ---
@@ -48,7 +45,7 @@ metacomp-skills-demo.zip
 | [MetaComp-Withdrawal](./MetaComp-Withdrawal) | 0.4.1 | Withdraw fiat or crypto, distinguishing first-party and third-party destinations |
 | [MetaComp-Swap](./MetaComp-Swap) | 0.5.2 | Currency exchange across the supported fiat and crypto pair matrix |
 | [MetaComp-Wealth](./MetaComp-Wealth) | 0.6.0 | Browse and subscribe to MetaComp Fixed Income Products (FIP) |
-| [MetaComp-VisionX](./MetaComp-VisionX) | 1.3.0 / 2.0.0 | Risk screening for Web3 wallets and transactions |
+| [MetaComp-VisionX](./MetaComp-VisionX) | 1.3.0 | Risk screening for Web3 wallets and transactions |
 
 ---
 
@@ -67,7 +64,7 @@ Performs currency exchange across supported fiat-fiat, fiat-crypto, and crypto-c
 Subscribes the user to MetaComp Fixed Income Products. The flow runs an investor pre-check (eligibility, risk tier, jurisdiction), then renders the catalog of products the user qualifies for with APY, term, liquidity terms, and minimum holding period. Subscription requires the user to repeat a verbatim agreement-acceptance phrase generated from the product's legal documents; only an exact match is treated as consent before the subscription call is made.
 
 ### MetaComp-VisionX
-Returns a structured risk report for a Web3 wallet address or transaction hash. The wallet report includes entity identification, risk-source breakdown by category (sanctions, scam, mixer exposure, illicit counterparty, and others), and a comprehensive summary; the transaction report additionally distinguishes sender and recipient sides and flags exposure direction. Underlying data is aggregated across multiple on-chain analytics vendors. Two distributions are provided: `Skill for Claude/` uses the `metacomp-mcp` connector; `Skill for OpenClaw/` is published as the `@metacomp/visionx-kyt-mcp` npm package and additionally supports a Lark card output format when invoked from a Lark bot. See [`MetaComp-VisionX/README.md`](./MetaComp-VisionX/README.md) for the broader VisionX product context.
+Returns a structured risk report for a Web3 wallet address or transaction hash. The wallet report includes entity identification, risk-source breakdown by category (sanctions, scam, mixer exposure, illicit counterparty, and others), and a comprehensive summary; the transaction report additionally distinguishes sender and recipient sides and flags exposure direction. Underlying data is aggregated across multiple on-chain analytics vendors. Uses the `metacomp-mcp` connector. See [`MetaComp-VisionX/README.md`](./MetaComp-VisionX/README.md) for the broader VisionX product context.
 
 ---
 
@@ -79,7 +76,7 @@ MetaComp-Deposit, MetaComp-Withdrawal, MetaComp-Swap, and MetaComp-Wealth all us
 2. Connect and authorize with an `sk-...` API key. Keys are issued at [metacomp.ai](https://demo.metacomp.ai).
 3. Re-send the request. A 401 after connecting indicates the key must be re-authorized or reissued.
 
-MetaComp-VisionX for Claude uses the **`metacomp-mcp`** connector. The OpenClaw distribution installs via `npm` as `@metacomp/visionx-kyt-mcp` and reads the `METACOMP_TOKEN` environment variable.
+MetaComp-VisionX uses the **`metacomp-mcp`** connector (note the hyphen — different from the connector above).
 
 ---
 
@@ -91,10 +88,7 @@ MetaComp-VisionX for Claude uses the **`metacomp-mcp`** connector. The OpenClaw 
 ├── MetaComp-Withdrawal/   SKILL.md + subSkills/
 ├── MetaComp-Swap/         SKILL.md + subSkills/
 ├── MetaComp-Wealth/       SKILL.md + subSkills/
-└── MetaComp-VisionX/
-    ├── README.md
-    ├── Skill for Claude/
-    └── Skill for OpenClaw/
+└── MetaComp-VisionX/      SKILL.md + subSkills/ + README.md
 ```
 
 Each `SKILL.md` carries YAML frontmatter (name, version, description, MCP server) followed by a numbered step protocol and absolute rules. Files under `subSkills/` are loaded by the entry point before any tool call.
