@@ -8,7 +8,7 @@ MCP-powered skills that expose MetaComp's Deposit, Withdrawal, Swap, Wealth, and
 
 Skills are released as **one bundle per backend environment**. Each bundle contains six skill `.zip`s pre-configured to talk to the matching MetaComp environment (`dev`, `demo`, `uat`, or `www` / production).
 
-→ **[GitHub Releases](https://github.com/metacomp-ai/metacomp-skill/releases/latest)**
+→ **[Latest release](https://github.com/metacomp-ai/metacomp-skill/releases/latest)** &nbsp;·&nbsp; **[All releases](https://github.com/metacomp-ai/metacomp-skill/releases)**
 
 | Outer bundle | Backend it points to |
 |---|---|
