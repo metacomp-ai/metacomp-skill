@@ -55,8 +55,10 @@ Call `investor_precheck` (no parameters).
 ### Step 2 — Branch on result
 
 - **All values `true`** → proceed to Step 3 (rich recommendation)
-- **Any value `false`** → render the **Generic Teaser** template below, then return to the primary flow
-- **Error / Token Guard** → skip recommendation entirely, return to primary flow
+- **Any value `false`** → render the **DATA-BOUND Generic Teaser** below, listing the exact `false` items, then return to the primary flow
+- **Error / Token Guard / `investor_precheck` was NOT called this turn** → render NOTHING (silent skip), return to the primary flow
+
+> ⛔ There is exactly ONE no-render path and ONE teaser path: teaser requires a real `investor_precheck` result with ≥1 `false` item. If you cannot point to such a result this turn, the only legal outcome is **silent skip** — never a teaser "by default".
 
 ### Step 3 — Fetch product summary
 
@@ -173,7 +175,24 @@ After the LAST product section, append exactly ONE closing line. This line **dif
 
 ---
 
-## Generic Teaser Template (precheck failed)
+## Generic Teaser Template (precheck returned ≥1 false — DATA-BOUND)
+
+> ⛔ **数据绑定守卫 (DATA-BIND GUARD):** 仅当本轮**真的调用了** `investor_precheck`、其响应含 ≥1 个值为 `false` 的项时,才可渲染本 teaser,且**必须**逐条列出这些 `false` 项(用下方 label 表)。满足以下任一情况 → **什么都不渲染(静默跳过)**,返回主流程:
+> - 本轮没有调用 `investor_precheck`;
+> - 调用报错 / 命中 Token Guard;
+> - 返回值全为 `true`(此时走 **Rich Recommendation**,不是 teaser);
+> - 你指不出具体的 `false` 项。
+>
+> 凭记忆、当默认值、或不引用真实 `false` 项地渲染本 teaser,属于规则违规。
+
+### Failed-item label table (authoritative for the teaser; kept in sync with ../wealth/wealth.md STEP 2)
+
+| Server key | 中文 label | English label |
+|---|---|---|
+| `Master Brokerage Agreement & Trading Rules` | 主经纪协议及交易规则 | Master Brokerage Agreement & Trading Rules |
+| `investorDeclarationTag` | 投资者声明 | Investor Declaration |
+
+未知 key → 原样显示 key 作为 label(两种语言相同字符串)。仅列 `false` 项,`true` 项不出现。
 
 ### Chinese (canonical)
 
@@ -182,7 +201,12 @@ After the LAST product section, append exactly ONE closing line. This line **dif
 
 💡 **了解 MetaComp 理财**
 
-刚才账户概览显示您有可用余额，MetaComp 提供固定收益理财产品，可助您闲置资金增值。如需了解详情，请先前往 [MetaComp 官网](https://camp.mce.sg) 完成投资者声明，然后告诉我「我想看看理财」。
+刚才账户概览显示您有可用余额，MetaComp 提供固定收益理财产品，可助您闲置资金增值。您还差以下步骤即可认购：
+
+- ❌ **{label}**
+- ...
+
+请前往 [MetaComp 官网](https://camp.mce.sg) 完成签署，完成后告诉我「我想看看理财」。
 
 ---
 ```
@@ -194,10 +218,24 @@ After the LAST product section, append exactly ONE closing line. This line **dif
 
 💡 **Discover MetaComp Wealth**
 
-The account overview above shows you have available balance. MetaComp offers fixed income products that can help grow these idle funds. To explore available products, please complete your investor declaration at [MetaComp](https://camp.mce.sg) first, then say "I'd like to explore wealth products."
+The account overview above shows you have available balance. MetaComp offers fixed income products that can help grow these idle funds. You're a few steps away from subscribing:
+
+- ❌ **{label}**
+- ...
+
+Please complete the signing at [MetaComp](https://camp.mce.sg), then say "I'd like to explore wealth products."
 
 ---
 ```
+
+### Template hard rules (every language)
+
+- ❌ NOT a table. Bullet 列表,每个 false 项一行 `- ❌ **{label}**`,无状态列。
+- ❌ Do NOT fabricate per-item status strings(`未签署` / `Not signed` 等)。服务端只返回布尔。
+- ❌ 仅列 `false` 项;`true` 项不出现。
+- ❌ Do NOT substitute the URL — 恒为 `https://camp.mce.sg`,任何语言不替换,never render `metacomp.ai` host here.
+- ❌ Do NOT mix languages in `{label}` — 中英列二选一,保持一致。
+- ✅ CTA「我想看看理财」/「I'd like to explore wealth products」保持不变(用于下一轮路由回 wealth 场景)。
 
 ---
 
@@ -207,7 +245,7 @@ The account overview above shows you have available balance. MetaComp offers fix
 - **Language matching:** Render the template in the user's conversation language — Chinese user sees the CN template verbatim, English user sees the EN template. Never mix languages in one recommendation block. If the conversation is mixed, default to English.
 - **Non-blocking:** After showing the recommendation (rich or generic), always continue to the primary flow's next step. The recommendation is appended content, not a replacement.
 - **One per conversation:** If the recommendation (either template) has already been displayed in this conversation, do not display it again.
-- **No product specifics in teaser:** When precheck fails, the generic teaser must NOT contain any product names, codes, APYs, currencies, or term details. This respects the wealth scenario's Absolute Rule that the product catalog is gated behind eligibility.
+- **No product specifics in teaser:** When the teaser is rendered (precheck returned ≥1 `false` item), it must NOT contain any product names, codes, APYs, currencies, or term details. This respects the wealth scenario's Absolute Rule that the product catalog is gated behind eligibility.
 - **No financial advice:** The recommendation presents factual product information (APY, currencies, terms). Do NOT add commentary like "your assets are concentrated in BTC, consider diversifying" or "you should subscribe." This handles recommendation mechanics only.
 - **Call to action phrasing:** The CTA "我想看看理财" / "I'd like to explore wealth products" is chosen to match the wealth scenario's trigger words, so it naturally routes to the wealth scenario in the next turn.
 - **Language:** Follow the user's conversation language. Templates above are canonical in Chinese; translate prose/headers for English users. Server-returned strings (`estApr`, `Flexible`) are verbatim.
