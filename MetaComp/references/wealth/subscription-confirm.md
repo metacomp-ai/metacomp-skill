@@ -4,7 +4,7 @@ This sub-skill defines the agreement + confirmation page (STEP 5), the success /
 
 > **Token Guard applies to every MCP call referenced by this file.** After each tool call, check the response for `success: false` with `authPageUrl` FIRST. If detected → follow the **Token Guard** rule in SKILL.md Absolute Rules (stop flow, show login link, HARD STOP). Do NOT fall through to step-specific error handling.
 
-All templates below are **canonical in Chinese**. Render in the user's conversation language per SKILL.md LANGUAGE CONTRACT. When translating to English (or another language), translate headers / labels / prose but keep these items byte-for-byte:
+All templates below are **canonical in Chinese**. Render in the user's conversation language per wealth.md LANGUAGE CONTRACT. When translating to English (or another language), translate headers / labels / prose but keep these items byte-for-byte:
 
 - **VERBATIM — the STEP 5 confirmation phrase shell:** `I have read and agree to 「{show_name}」 & 「{show_name}」 & ...` — fixed English, never translated. Connectors (`I have read and agree to`, ` & `) and corner brackets `「」` are fixed. Only `{show_name}` slots are substituted, from `agreements[].show_name` in the `get_fip_agreement` response, also verbatim (no translation, no case normalization).
 - **VERBATIM — server-returned strings:** `variant.term` (`Flexible`, `30 Days`, `90 Days`), `variant.estApr` (`10.00%`), `variant.liquidity` (`(T + 3 Settlement)`), `variant.mhp` (`Minimum Holding Period: 14 Days`), `productName`, `productCode`, `productType`, `agreements[].show_name`, `agreements[].url`, any server error message, any `tradeCode` / reference ID / timestamp.
@@ -69,7 +69,7 @@ Display after `get_fip_agreement` returns and before `fip_subscribe` is called.
 |---|---|
 | `productName` / `productType` / `productCode` | `get_fip_products` product-level |
 | `currency` / `variant.term` / `variant.estApr` / `variant.liquidity` / `variant.mhp` | chosen `currencyItemList[j]` variant. Never show `termDays` directly — it may be `-1`/`-2`. `estApr` already contains `%`. |
-| `subscriptionAmount` | user-supplied, validated in SKILL.md STEP 4, displayed with thousands separators |
+| `subscriptionAmount` | user-supplied, validated in wealth.md STEP 4, displayed with thousands separators |
 | `{show_name}` / `{url}` in agreement list + confirmation phrase | `get_fip_agreement.agreements[]` sorted by `sort` ascending. Use `show_name` as both the link text and the phrase slot; use `url` as the link target. |
 | estimated return | ⚠ NOT derivable (product-level `estApr` may be a range; `termDays` negative for open-term). Omit the row entirely — do not guess. |
 
@@ -135,7 +135,7 @@ Display when `fip_subscribe` returns `success: false`.
 | 余额不足 Insufficient balance | "请先为 {currency} 账户充值后再试。" |
 | 产品售罄 / 额度耗尽 Product sold out | "该产品当前已不可认购，是否换一款？" |
 | 金额低于起购 / 无效 Amount invalid | "请调整金额后重试。" |
-| 会话过期 Session expired | 展示 `authPageUrl` 登录链接（同 SKILL.md STEP 1）。 |
+| 会话过期 Session expired | 展示 `authPageUrl` 登录链接（同 Token Guard，见 SKILL.md）。 |
 | 资格变化 Eligibility changed | "您的认购资格可能已发生变化，请重新开始流程。" |
 | 其他 / 未知 Unknown | "请稍后重试。如问题持续，请联系 metacomp.ai 客服。" |
 

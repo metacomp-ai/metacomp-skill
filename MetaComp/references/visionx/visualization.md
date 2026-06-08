@@ -8,6 +8,21 @@
 - ✅ Always call `read_me(["chart"])` before the first `show_widget` in each wallet response
 - ✅ Every new wallet MCP result requires its own fresh visualization
 
+## Widget Render Reliability — retry the first call, never improvise a text fallback
+
+The chart runtime cold-starts on the **first** chart call of a fresh MCP session: `read_me(["chart"])` or the first `show_widget` sometimes returns an error or an empty/failed result the first time, then succeeds on a second attempt. (This is the "first conversation shows tables, second conversation shows the charts" symptom — the second conversation just hit a warm runtime.) A same-turn retry is how you get that "second time" without making the user re-ask.
+
+So, when a chart call doesn't succeed, **retry before doing anything else** — do not abandon the widget after one hiccup:
+
+- `read_me(["chart"])` errors or returns empty → **retry it once** before the first `show_widget`. Do not call `show_widget` until `read_me(["chart"])` has returned successfully.
+- A `show_widget` call returns an error or an empty/failed result → **retry that same `show_widget` call once** before moving on. The first widget call in a session is the usual culprit; a single retry almost always renders.
+
+What you must NOT do, because it produces exactly the broken first-conversation output:
+
+- ❌ Do NOT silently degrade the charts to markdown/plain-text tables after a single failed call. The `show_widget` chart **is** the required deliverable, not an optional enhancement.
+- ❌ Do NOT tell the user the visualization tool is "unresponsive" / "unavailable" or emit a "presenting data in table form below" substitute. That sentence is never correct here — retry instead.
+- Only if a chart call **fails again after the retry** do you add one brief line ("the chart didn't render this time — here is the data") and continue with the remaining report sections. One retry first, always.
+
 ## Chart Fallback Rule
 
 - Empty array → gray placeholder slice/bar labeled "No data" (transaction charts)

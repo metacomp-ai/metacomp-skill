@@ -109,11 +109,11 @@ Below the overview, show per-currency balances from `data.instrumentInfoMap`.
 From `get_account_detail` response, for each entry in `instrumentInfoMap`:
 | Display field | Source field |
 |---|---|
-| Currency | `unitCode` |
+| Currency | map key (currency code) |
 | Available | `availableAmount` (0 → `—`) |
 | Pending | `pendingAmount` (0 → `—`) |
 | Incoming | `pendingCreditAmount` (0 → `—`) |
-| USD Equivalent | `availableAmountUSD` (0 → `—`) |
+| USD Equivalent | `availableAmountDisplay` (0 → `—`) |
 
 ---
 
@@ -210,7 +210,7 @@ Same display rules. Note: some instruments may have `productCode: null` (e.g. `D
 ### Filtering & Grouping
 
 All pairs are displayed, including internal currencies (`Primo_Link`, `PX-First`).
-Group bidirectional pairs together. If both `USD/USDC` and `USDC/USD` exist, show as one bidirectional entry:
+Every pair returned by `get_available_currency_pairs` is bidirectional — both BASE→QUOTE and QUOTE→BASE swaps are supported. Render each returned entry with Direction = "Bidirectional" / "双向" without checking for the reverse string in the list:
 
 ### English
 
@@ -241,26 +241,6 @@ Group bidirectional pairs together. If both `USD/USDC` and `USDC/USD` exist, sho
 | JPY / EUR  | 双向 |
 | HKD / EUR  | 双向 |
 ```
-
-If only one direction exists (e.g. `USD/SGD` but no `SGD/USD`):
-- English: `USD → SGD | One-way`
-- Chinese: `USD → SGD | 单向`
-
-### With exchange rates (from `get_exchange_quote`)
-
-Include a Rate column using rates fetched in STEP 2. For bidirectional pairs, show the rate in one direction (BASE → QUOTE):
-
-```
-| Pair       | Rate                 | Direction     |
-|------------|----------------------|---------------|
-| USD / USDC | 1 USD = 1.0001 USDC  | Bidirectional |
-| SGD / HKD  | 1 SGD = 5.7823 HKD   | Bidirectional |
-```
-
-**Rules:**
-- Rate values come from `get_exchange_quote` response `rate` field
-- Display rate with reasonable precision (4–6 decimal places for fiat, up to 8 for crypto)
-- If a rate call fails for a specific pair, show `—` in the Rate column instead of omitting the pair
 
 ---
 
