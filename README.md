@@ -88,8 +88,6 @@ When editing the skill:
 - Bump `version:` in `MetaComp/SKILL.md` frontmatter.
 - Keep the router (STEP ZERO) and each scenario's sub-skill list in sync with the
   files actually under `references/`.
-- Do not loosen the Token Guard, the Wealth Evaluation Gate, or the QR Artifact
-  Gate without an explicit design discussion; they are safety rails, not stylistic
-  choices.
+- Do not loosen the Token Guard, the Wealth Evaluation Gate, or the Funds-First Gate without an explicit design discussion; they are safety rails, not stylistic choices.
 - Trigger phrases (including bilingual variants) belong in the `description:`
   field of the frontmatter, not in the step prose.
