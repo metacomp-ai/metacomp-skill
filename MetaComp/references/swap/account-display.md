@@ -8,6 +8,8 @@ This sub-skill defines how to present account data and available currency pairs 
 
 ## Account Overview (from `get_account_summary`)
 
+> **Scope:** rendered only in swap STEP 2 **branch D** (no-intent). Branches A/B/C are overview-free — do NOT render this table, the per-currency details, or the full Available Currency Pairs list for them.
+
 Present the high-level summary first:
 
 ### English
@@ -244,6 +246,43 @@ Every pair returned by `get_available_currency_pairs` is bidirectional — both 
 
 ---
 
+## Filtered Currency Pairs (筛选币对)
+
+Used by swap STEP 2 branches **C** (single currency) and the **Unsupported-pair degrade** path. Show ONLY the pairs that contain the named currency `{X}`. Same table format as Available Currency Pairs; just filter to entries where `{X}` is either side of the pair. Every shown pair is still bidirectional.
+
+- If **zero** pairs contain `{X}`: do NOT render an empty table. Tell the user no exchange pair is available for `{X}` and ask them to pick a different currency (user's language), then ⛔ STOP.
+- Do NOT render the Account Overview or any per-currency detail alongside this block — branch C/degrade is intentionally overview-free.
+
+### English
+
+```
+**Pairs available for {X}**
+
+| Pair       | Direction     |
+|------------|---------------|
+| USD / USDC | Bidirectional |
+| USD / FDUSD| Bidirectional |
+| USD / SGD  | Bidirectional |
+
+> Tell me the other currency (and amount), e.g. "to 10,000 SGD".
+```
+
+### Chinese
+
+```
+**含 {X} 的可用币对**
+
+| 币对        | 方向 |
+|------------|------|
+| USD / USDC | 双向 |
+| USD / FDUSD| 双向 |
+| USD / SGD  | 双向 |
+
+> 请告诉我另一个币种（和金额），例如"换成 10,000 SGD"。
+```
+
+---
+
 ## Output Order
 
 1. Account Overview table (from `get_account_summary`)
@@ -253,4 +292,5 @@ Every pair returned by `get_available_currency_pairs` is bidirectional — both 
 5. Quarantine Detail (from `get_account_detail`, productCode=quarantine_portfolio)
 6. Investment Products Detail (from `get_account_detail`, productCode=investment_product)
 7. Available Currency Pairs (from `get_available_currency_pairs`)
+   - For swap STEP 2 branch C / Unsupported-pair degrade: render **Filtered Currency Pairs** (only pairs containing the named currency) INSTEAD of this full list, and omit items 1–6 (no overview).
 8. Ask the user

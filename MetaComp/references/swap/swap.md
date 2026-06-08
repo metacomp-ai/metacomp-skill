@@ -1,47 +1,83 @@
 # Swap scenario
 
-Entered from SKILL.md after the shared STEP 1 (`../shared/auth-kyc-setup.md`) verified the session via `get_account_summary`. Swap uses its **own** account display (`account-display.md`, with currency pairs + all-5-productCode detail) rather than the shared `account-overview.md`. This file is STEP 2 onward.
+Entered from SKILL.md after the shared STEP 1 (`../shared/auth-kyc-setup.md`) verified the session via `get_account_summary`. Swap uses its **own** account display (`account-display.md`) rather than the shared `account-overview.md`. This file is STEP 2 onward. **STEP 2 triages the triggering message's intent and branches (A/B/C/D)** — it renders the full overview + all-pairs only in branch D (no-intent); branches that already carry currency/pair intent fetch and show only what they need, then converge into STEP 4C.
 
 > If `get_account_summary` already succeeded in shared STEP 1, do not re-call it; proceed to STEP 2.
 
 ---
 
-# STEP 2 — Fetch pairs + account detail
+# STEP 2 — Intent Triage & Branch
 
+Parse the **triggering message** with the STEP 4A rules to extract `source_currency`, `target_currency`, `amount`, `direction`. Classify into exactly ONE branch and dispatch. All branches converge into **STEP 4C → STEP 5**.
+
+> **"Return to 3C" for triage flows:** STEP 4C/STEP 5 error paths say "return to 3C". 3C is branch D's exchange-intent ask. For flows that originated in branch **A / B / C** (no 3C was rendered), "return to 3C" means **re-ask the exchange intent / re-run STEP 2 triage** with what is known — not "render branch D's 3C". The intent is the same: bounce back to asking how to exchange.
+
+> **Token Guard on every call:** any fetch below returning `success: false` with `authPageUrl` → Token Guard (SKILL.md): stop, show login link, HARD STOP. Applies to all branches, before any branch-specific handling.
+
+> **Swap-eligible accounts:** only `fiat` and `crypto` can be swap sources. `get_account_detail` for these two covers BOTH source-productCode resolution and the Funds-First balance check. The other three (`investment_fiat`, `quarantine_portfolio`, `investment_product`) are display-only and fetched ONLY in branch D.
+
+## 2A — Classify
+
+| Branch | Condition |
+|---|---|
+| **A** | both currencies present AND `direction` + `amount` resolvable |
+| **B** | both currencies present but no `amount`, OR `amount` present but `direction` unresolvable |
+| **C** | exactly one currency present |
+| **D** | no currency (balance curiosity / exploration / abandonment / no valid swap intent) |
+
+Classification is mutually exclusive and exhaustive. Ambiguous direction → **B** (ask), never infer (STEP 4A rule).
+
+## 2B — Branch A (full pair + amount)
+Call in **parallel**:
+1. `get_swap_range({ fromCurrency: source_currency, toCurrency: target_currency })` — validates the pair AND returns `swap_min` / `swap_max`. `{ success: false }` → pair unsupported → **2F Unsupported-pair degrade**.
+2. `get_account_detail` for `fiat` and `crypto` **only**.
+
+Emit a one-line intent echo (user's language) before proceeding — adjust source/target by `direction`:
+- 中文:`已理解:将 {amount} {source_currency} 兑换为 {target_currency},正在查汇率…`
+- English: `Understood: exchanging {amount} {source_currency} → {target_currency}, checking the rate…`
+
+Do **NOT** display the account overview or any pairs list. Proceed to **STEP 4C** (4A/4B already done in triage; carry the `get_swap_range` result forward — do not re-call it).
+
+## 2C — Branch B (full pair, no amount)
+Call in **parallel**:
+1. `get_swap_range({ fromCurrency: source_currency, toCurrency: target_currency })` — same validation/bounds as 2B. `{ success: false }` → **2F Unsupported-pair degrade**.
+2. `get_account_detail` for `fiat` and `crypto` **only**.
+
+Ask the user for the **amount**, showing the swap range in `source_currency` per the STEP 4C range-display lines (both bounds / only max / only min / omit when both null). Do **NOT** display the account overview or pairs list. ⛔ **STOP.**
+→ On the user's amount reply: proceed to **STEP 4C** (currencies + direction known; carry the `get_swap_range` result forward — do not re-call. If direction is still unresolvable, ask).
+
+## 2D — Branch C (single currency)
 Call in **parallel**:
 1. `get_available_currency_pairs()`
-2. `get_account_detail` for **all** productCodes: `fiat`, `crypto`, `investment_fiat`, `quarantine_portfolio`, `investment_product`
+2. `get_account_detail` for `fiat` and `crypto` **only**.
 
-→ Any call returns `success: false` with `authPageUrl` → Token Guard (SKILL.md), show login link, STOP.
-→ All succeed → STEP 3.
+Display ONLY the pairs containing the named currency, per `account-display.md` → **Filtered Currency Pairs**. Do **NOT** display the account overview. Ask the user for the other currency (+ amount / direction). ⛔ **STOP.**
+→ On reply: **re-run STEP 2 Intent Triage** with the combined intent (normally now A or B).
 
-**IMPORTANT — Swap-eligible accounts:** Only `fiat` and `crypto` can be source accounts for exchange. The other three (`investment_fiat`, `quarantine_portfolio`, `investment_product`) are display-only and MUST NOT be used as swap sources.
+## 2E — Branch D (no intent)
+Today's full behavior. Call in **parallel**:
+1. `get_available_currency_pairs()`
+2. `get_account_detail` for **all** productCodes: `fiat`, `crypto`, `investment_fiat`, `quarantine_portfolio`, `investment_product`.
 
-Key data from `get_account_detail`:
-- `data.holderCode` — account identifier (e.g. `A0102634`), used on the confirmation page.
-- `data.instrumentInfoMap` — per-currency breakdown. **Do not hardcode** which currencies belong to which productCode — each user differs.
-- Build a unified lookup by merging `instrumentInfoMap` across productCodes. A currency may appear in multiple productCodes; record `availableAmount` / `pendingAmount` / `pendingCreditAmount` per (currency, productCode). **Do NOT sum across productCodes** — they are separate accounts.
-- When validating swap balance (STEP 4C), only check `fiat` + `crypto`.
-- Display filter: show currencies where `availableAmount > 0` OR `pendingAmount > 0` OR `pendingCreditAmount > 0`.
+→ Any call `success: false` with `authPageUrl` → Token Guard, STOP. → All succeed → display per `account-display.md` (Account Overview + per-currency details + the full Available Currency Pairs list), then ask **3C**.
 
----
-
-# STEP 3 — Display Data & Ask User
-
-Present per `account-display.md`, then ask.
-
-## 3A — Account Overview
-Display the account summary (from shared STEP 1's `get_account_summary`).
-
-## 3B — Available Currency Pairs
-Display available pairs. Every returned pair is bidirectional — see `account-display.md` for the table format. **Do NOT show an exchange-rate column here** — real rates come at STEP 5 (the quote). Showing rates now would mislead since they fluctuate.
-
-## 3C — Ask the user
+### 3C — Ask the user (branch D)
 > How would you like to exchange? For example: "Exchange USD for 10,000 SGD"
 
 ⛔ **STOP.** Wait. Do not assume, guess, or pre-fill values.
 
-**Wealth Evaluation Gate (on no-intent reply):** when the user's reply to 3C contains no valid swap intent (no currencies, no amount, no direction — balance curiosity / abandonment / exploration), evaluate `WEALTH_RECOMMENDATION_TRIGGER` (`../shared/wealth-recommendation.md`) BEFORE re-asking 3C. If TRUE, render the recommendation, then re-ask 3C. If the reply IS a valid swap intent → STEP 4, no recommendation. (See SKILL.md → Wealth Evaluation Gate.)
+**Wealth Evaluation Gate (on no-intent reply):** when the user's reply to 3C contains no valid swap intent (no currencies, no amount, no direction — balance curiosity / abandonment / exploration), evaluate `WEALTH_RECOMMENDATION_TRIGGER` (`../shared/wealth-recommendation.md`) BEFORE re-asking 3C. If TRUE, render the recommendation, then re-ask 3C. If the reply IS a valid swap intent → **re-run STEP 2 Intent Triage**, no recommendation. (See SKILL.md → Wealth Evaluation Gate.)
+
+## 2F — Unsupported-pair degrade (branches A / B / C)
+When `get_swap_range` returns `{ success: false }` (A/B), or the user's single named currency (C) appears in no pair: tell the user that pair / currency can't be exchanged, then display the pairs containing the currency they named (per `account-display.md` → **Filtered Currency Pairs**; use `source_currency` if known, else the named currency). Re-ask. ⛔ **STOP.** Never dead-end.
+
+## Key data from `get_account_detail`
+(Branch D fetches all 5 productCodes; A/B/C fetch the `fiat`/`crypto` subset. Same field semantics either way.)
+- `data.holderCode` — account identifier (e.g. `A0102634`), used on the confirmation page.
+- `data.instrumentInfoMap` — per-currency breakdown. **Do not hardcode** which currencies belong to which productCode — each user differs.
+- Build a unified lookup by merging `instrumentInfoMap` across productCodes. A currency may appear in multiple productCodes; record `availableAmount` / `pendingAmount` / `pendingCreditAmount` per (currency, productCode). **Do NOT sum across productCodes** — they are separate accounts.
+- When validating swap balance (STEP 4C), only check `fiat` + `crypto`.
+- Display filter (branch D only): show currencies where `availableAmount > 0` OR `pendingAmount > 0` OR `pendingCreditAmount > 0`.
 
 ---
 
@@ -53,14 +89,12 @@ Extract `source_currency`, `target_currency`, `amount`, `direction` (is `amount`
 - "spend 10,000 USD to buy SGD" → `source_currency=USD`, `amount=10000`, `direction=source`
 - Ambiguous (can't determine source/target) or only one currency mentioned → **ASK**. Do not infer.
 
-## 4B — Validate pair available
-Each pair is bidirectional. Check if **either** `{source}/{target}` **or** `{target}/{source}` exists in the pairs list. Treat both as available.
-→ Not available: tell the user, list available pairs, ⛔ **STOP**, re-validate from 4B after they choose.
-→ Available: 4C.
+## 4B — Pair validation (folded into the swap-range probe)
+Pair validation is performed by the `get_swap_range` probe in 4C (`{ success:false }` → unsupported), and for branches A/B it was already run in **STEP 2 triage** — carry that result forward, do not re-call. There is no separate pairs-list bidirectional check here. On an unsupported pair, follow **STEP 2 → 2F Unsupported-pair degrade** (tell the user, show pairs containing their currency, re-ask).
 
 ## 4C — Resolve source amount & productCode
 
-**Swap range probe (do this once `source_currency` + `target_currency` are known).** Call `get_swap_range({ fromCurrency: source_currency, toCurrency: target_currency })`:
+**Swap range probe (do this once `source_currency` + `target_currency` are known).** If **STEP 2 triage already called `get_swap_range` for this pair (branches A/B)**, reuse that result — do NOT re-call. Otherwise call `get_swap_range({ fromCurrency: source_currency, toCurrency: target_currency })`:
 - `{ success: false }` → the pair is unsupported. Tell the user and return to 3C. (This also serves as pair validation, including for `direction=source`.)
 - Otherwise record `swap_min` / `swap_max` (both in `source_currency`, either may be `null`). For `direction=target`, this probe and `get_exchange_quote` can run in parallel.
 
@@ -133,8 +167,11 @@ Render per `swap-confirm.md`.
 # Final Response Gate (swap)
 
 ```
-☐ STEP 2: pairs + all 5 productCode details fetched? errors handled?
-☐ STEP 3: account overview + available pairs displayed? asked 3C? STOP?
+☐ STEP 2: triggering message classified into exactly one branch (A/B/C/D)?
+☐ STEP 2 A/B: get_swap_range used for validation+bounds (NOT get_available_currency_pairs)? get_account_detail limited to fiat+crypto? NO overview / NO all-pairs rendered? A: intent echo emitted? → entered 4C carrying the swap-range result?
+☐ STEP 2 C: get_available_currency_pairs fetched? displayed ONLY pairs containing the named currency (Filtered Currency Pairs), NO overview? asked the other side? STOP? reply re-triaged?
+☐ STEP 2 D: pairs + all 5 productCode details fetched? full overview + all pairs displayed? asked 3C? STOP? Wealth Gate evaluated on no-intent reply?
+☐ STEP 2 2F: unsupported pair (A/B success:false, or C currency in no pair) → degraded to Filtered Currency Pairs + re-ask, never dead-ended?
 ☐ STEP 4: source/target/amount/direction parsed? ambiguous → asked? pair validated? direction=target → get_exchange_quote? source productCode resolved? balance handled per direction (direction=source → early exact check; direction=target → deferred to 5a lock, no pre-check on the unlocked rate)?
 ☐ STEP 5a: get_otc_quote with totalValue as STRING (fromCurrency amount)? on failure showed message + returned to 3C, no auto-retry? preserved quoteCode/exchangeRate/fromCurrency/toCurrency/totalValue?
 ☐ STEP 5b: confirmation per swap-confirm.md? rate = exchangeRate string? ⚠ validity notice in user's language? STOP, waited for explicit confirm, no auto-confirm?
