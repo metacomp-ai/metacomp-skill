@@ -60,12 +60,14 @@ jobs:
         with:
           name: skill-bundles
           path: dist/*/MetaComp-*.zip
+          if-no-files-found: error
           retention-days: 30
 
       - name: Create GitHub Release
         if: ${{ inputs.release_tag != '' }}
         uses: softprops/action-gh-release@v2
         with:
+          token: ${{ github.token }}
           tag_name: ${{ inputs.release_tag }}
           name: ${{ inputs.release_tag }}
           files: dist/*/MetaComp-*.zip
