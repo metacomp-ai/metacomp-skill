@@ -17,9 +17,7 @@ to talk to the matching MetaComp environment.
 
 | Zip | Backend it points to |
 |---|---|
-| `MetaComp-dev-<version>.zip`     | `https://dev.metacomp.ai`  |
 | `MetaComp-demo-<version>.zip`    | `https://demo.metacomp.ai` |
-| `MetaComp-uat-<version>.zip`     | `https://uat.metacomp.ai`  |
 | `MetaComp-sandbox-<version>.zip` | `https://sandbox.metacomp.ai` |
 | `MetaComp-prod-<version>.zip`    | `https://www.metacomp.ai` (production) |
 
