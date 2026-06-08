@@ -1,14 +1,14 @@
 # Wealth Product Recommendation (Mandatory Evaluation, Non-blocking Render)
 
-This file is referenced by Deposit, Swap, and Withdrawal skills. It defines a **mandatory evaluation** that runs after every Account Overview render (Deposit / Withdrawal) or at STEP 3C no-intent reply (Swap). When the trigger evaluates TRUE, a recommendation block is rendered; when FALSE, nothing is rendered — but the **evaluation itself always happens**.
+This file is referenced by the **deposit**, **withdraw**, and **swap** scenarios. It defines a **mandatory evaluation** that runs after every Account Overview render (deposit / withdraw) or at the swap scenario's STEP 3C no-intent reply. When the trigger evaluates TRUE, a recommendation block is rendered; when FALSE, nothing is rendered — but the **evaluation itself always happens**.
 
 **Two different things, do not conflate them:**
 - **Evaluation** (internal decision) → **mandatory**, always runs, never skippable.
 - **Render** (the visible block) → **non-blocking**, appended content that never halts the primary flow; absent when evaluation returns FALSE.
 
-Skipping the evaluation is a rule violation under the **Wealth Evaluation Gate** (see each skill's Absolute Rules).
+Skipping the evaluation is a rule violation under the **Wealth Evaluation Gate** (see SKILL.md → Absolute Rules).
 
-**Scope:** Used by Deposit, Swap, Withdrawal. Never used by `MetaComp-Wealth` (it IS the wealth flow).
+**Scope:** Used by the deposit / withdraw / swap scenarios. Never used by the **wealth** scenario (it IS the wealth flow).
 
 ---
 
@@ -17,13 +17,13 @@ Skipping the evaluation is a rule violation under the **Wealth Evaluation Gate**
 The recommendation fires when **ALL** of the following are true:
 
 1. Account Overview has been successfully displayed in the current response
-2. The current skill is NOT `MetaComp-Wealth`
+2. The current scenario is NOT **wealth**
 3. The recommendation has NOT already been shown in this conversation (one per conversation)
 4. At least one account has `availableAmount > 0` (no point recommending to a user with no funds)
 5. At least ONE of the following facts is true. Evaluate **in order 5a → 5b → 5c**; if any earlier clause fires, stop — condition 5 is satisfied.
 
    **5a. View-Only Mode has been entered (deterministic, highest priority).**
-   - Deposit / Withdrawal: STEP 1 Case C detected that the original trigger message contained asset-viewing keywords (e.g. "check balance", "查看资产", "看看余额", "check my asset status", "我的资产", "账户概览") without any deposit/withdraw/swap keywords, so the skill is in View-Only Mode.
+   - Deposit / Withdraw: STEP 1 Case C detected that the original trigger message contained asset-viewing keywords (e.g. "check balance", "查看资产", "看看余额", "check my asset status", "我的资产", "账户概览") without any deposit/withdraw/swap keywords, so the flow is in View-Only Mode.
    - Swap: at STEP 3C, the user's reply contains no currency, no amount, no exchange direction (i.e. the reply is a balance-curiosity / abandonment / exploration message).
    - **When 5a holds, condition 5 is automatically TRUE. Do NOT re-interpret the user's intent; the flow state already gives the answer.**
 
@@ -34,7 +34,7 @@ The recommendation fires when **ALL** of the following are true:
    **5c. The original triggering message expresses flow abandonment or open exploration.** (This clause still involves judgment — use it only if 5a and 5b both fail.)
    - **Flow abandonment:** "算了", "不提了", "不换了", "不充了", "never mind", "I changed my mind", "cancel", "just looking", "我就看看"
    - **Open exploration:** "还有什么可以做的", "what else can I do", "any suggestions", "有什么推荐"
-   - **Topic deviation:** user asks about something unrelated to the current skill's main action
+   - **Topic deviation:** user asks about something unrelated to the current scenario's main action
 
 If the original triggering message contains a **clear business intent** (specific currency + amount + fiat/crypto choice or swap direction) AND none of 5a/5b/5c fire, the trigger evaluates to FALSE — skip the render and proceed with the normal flow. **Note: even in this case, the evaluation itself still happened; you just decided the answer was FALSE.**
 
@@ -50,7 +50,7 @@ When WEALTH_RECOMMENDATION_TRIGGER is TRUE:
 
 Call `investor_precheck` (no parameters).
 
-**Token Guard exception:** If `investor_precheck` returns `success: false` with `authPageUrl`, **silently skip the entire recommendation**. Do NOT show a login link, do NOT interrupt the primary flow. This is the only context where Token Guard errors are swallowed — the recommendation is advisory and must never disrupt the user's current skill flow.
+**Token Guard exception:** If `investor_precheck` returns `success: false` with `authPageUrl`, **silently skip the entire recommendation**. Do NOT show a login link, do NOT interrupt the primary flow. This is the only context where Token Guard errors are swallowed — the recommendation is advisory and must never disrupt the user's current flow.
 
 ### Step 2 — Branch on result
 
@@ -70,9 +70,9 @@ Call `get_fip_products` (no parameters).
 
 ## Rich Recommendation Template (precheck passed, products available)
 
-When the trigger fires AND `investor_precheck` returns all true AND `get_fip_products` returns non-empty `data`, render the **full product catalog** in the same format used by MetaComp-Wealth. The canonical spec is in `MetaComp-Wealth/subSkills/product-display.md`; the recommendation reuses that format **verbatim**, with one adaptation to the closing line (CTA references the user's actual holdings).
+When the trigger fires AND `investor_precheck` returns all true AND `get_fip_products` returns non-empty `data`, render the **full product catalog** in the same format used by the wealth scenario. The canonical spec is in `../wealth/product-display.md`; the recommendation reuses that format **verbatim**, with one adaptation to the closing line (CTA references the user's actual holdings).
 
-### Format summary (must match MetaComp-Wealth product-display.md)
+### Format summary (must match ../wealth/product-display.md)
 
 - Iterate over `data[]` ordered by `sort` ascending. For each product, render one section.
 - **Section heading:** `### {productName}（{productType} / {productCode}）`
@@ -140,7 +140,7 @@ Product-level APY: 10.00%-11.11%
 
 ### Closing line — adapted for recommendation context
 
-After the LAST product section, append exactly ONE closing line. This line **differs** from MetaComp-Wealth STEP 3A's closing — it references the user's actual available holdings to make the recommendation feel personalized.
+After the LAST product section, append exactly ONE closing line. This line **differs** from the wealth scenario STEP 3A's closing — it references the user's actual available holdings to make the recommendation feel personalized.
 
 **Chinese:**
 
@@ -157,7 +157,7 @@ After the LAST product section, append exactly ONE closing line. This line **dif
 3. **Intersection** = A ∩ B
 4. **Order** the intersection as: USD → USDT → USDC → BTC → ETH (drop currencies not in the intersection)
 5. **Join:** Chinese uses `、`; English uses `, ` between items and `, and ` before the last
-6. **Empty intersection fallback** (user holds zero of the product currencies — rare): use the MetaComp-Wealth-standard closing instead, dropping the holdings reference:
+6. **Empty intersection fallback** (user holds zero of the product currencies — rare): use the wealth-scenario-standard closing instead, dropping the holdings reference:
    - CN: `请问您想认购哪一款？请告诉我**产品名称**和**币种**。（期限由产品决定，无需指定）`
    - EN: `Which product would you like? Please tell me the **product name** and **currency**. (Term is determined by the product — no need to specify.)`
 
@@ -169,7 +169,7 @@ After the LAST product section, append exactly ONE closing line. This line **dif
 - **`estApr`, `liquidity`, `mhp`, `term` (open-term)** — render server-returned strings verbatim. Do NOT translate, paraphrase, or reformat.
 - **Term (fixed-term only)** — localize per LANGUAGE CONTRACT: CN `30 / 60 / 90 天`, EN `30 / 60 / 90 Days`.
 - **Min defaults** — USD/USDT/USDC = `10,000`, BTC = `1`, ETH = `10`. Always show with thousands separators where applicable.
-- **CTA wording is locked** — the `认购 / subscribe` keyword in the closing line is intentional: it primes the user's next message to contain a MetaComp-Wealth trigger keyword, so the MetaComp-Wealth skill takes over the subscription flow. Do NOT change the CTA verb.
+- **CTA wording is locked** — the `认购 / subscribe` keyword in the closing line is intentional: it primes the user's next message to contain a wealth trigger keyword, so the **wealth** scenario takes over the subscription flow on the next turn. Do NOT change the CTA verb.
 
 ---
 
@@ -207,7 +207,7 @@ The account overview above shows you have available balance. MetaComp offers fix
 - **Language matching:** Render the template in the user's conversation language — Chinese user sees the CN template verbatim, English user sees the EN template. Never mix languages in one recommendation block. If the conversation is mixed, default to English.
 - **Non-blocking:** After showing the recommendation (rich or generic), always continue to the primary flow's next step. The recommendation is appended content, not a replacement.
 - **One per conversation:** If the recommendation (either template) has already been displayed in this conversation, do not display it again.
-- **No product specifics in teaser:** When precheck fails, the generic teaser must NOT contain any product names, codes, APYs, currencies, or term details. This respects the Wealth skill's Absolute Rule that the product catalog is gated behind eligibility.
-- **No financial advice:** The recommendation presents factual product information (APY, currencies, terms). Do NOT add commentary like "your assets are concentrated in BTC, consider diversifying" or "you should subscribe." This skill handles recommendation mechanics only.
-- **Call to action phrasing:** The CTA "我想看看理财" / "I'd like to explore wealth products" is chosen to match the Wealth skill's trigger words, so it naturally activates the Wealth skill in the next turn.
+- **No product specifics in teaser:** When precheck fails, the generic teaser must NOT contain any product names, codes, APYs, currencies, or term details. This respects the wealth scenario's Absolute Rule that the product catalog is gated behind eligibility.
+- **No financial advice:** The recommendation presents factual product information (APY, currencies, terms). Do NOT add commentary like "your assets are concentrated in BTC, consider diversifying" or "you should subscribe." This handles recommendation mechanics only.
+- **Call to action phrasing:** The CTA "我想看看理财" / "I'd like to explore wealth products" is chosen to match the wealth scenario's trigger words, so it naturally routes to the wealth scenario in the next turn.
 - **Language:** Follow the user's conversation language. Templates above are canonical in Chinese; translate prose/headers for English users. Server-returned strings (`estApr`, `Flexible`) are verbatim.
