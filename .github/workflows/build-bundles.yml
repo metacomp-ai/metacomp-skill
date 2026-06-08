@@ -2,16 +2,6 @@ name: Build skill bundles
 
 on:
   workflow_dispatch:
-    inputs:
-      release_tag:
-        description: 'Release tag (e.g. v1.0.0). Leave empty to skip GitHub release — bundles are still uploaded as workflow artifacts.'
-        required: false
-        type: string
-      environments:
-        description: 'Environments to build (comma-separated). Default builds all five.'
-        required: false
-        default: 'dev,demo,uat,prod,sandbox'
-        type: string
 
 permissions:
   contents: write
@@ -22,16 +12,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Resolve version from SKILL.md
+        id: version
+        run: |
+          set -euo pipefail
+          VERSION="$(awk '/^version:/ { gsub(/[",]/,"",$2); print $2; exit }' MetaComp/SKILL.md)"
+          [[ -n "$VERSION" ]] || { echo "Error: no version found in MetaComp/SKILL.md" >&2; exit 1; }
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Resolved version=$VERSION tag=v$VERSION"
+
       - name: Build per-environment zips
-        env:
-          ENVS: ${{ inputs.environments }}
         run: |
           set -euo pipefail
           chmod +x build.sh
-          IFS=',' read -ra ENV_LIST <<< "$ENVS"
-          for env in "${ENV_LIST[@]}"; do
-            env=$(echo "$env" | xargs)
-            [[ -z "$env" ]] && continue
+          for env in dev demo uat prod sandbox; do
             echo "::group::Build $env"
             ./build.sh "$env"
             echo "::endgroup::"
@@ -64,12 +59,11 @@ jobs:
           retention-days: 30
 
       - name: Create GitHub Release
-        if: ${{ inputs.release_tag != '' }}
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ github.token }}
-          tag_name: ${{ inputs.release_tag }}
-          name: ${{ inputs.release_tag }}
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
           files: dist/*/MetaComp-*.zip
           generate_release_notes: true
           fail_on_unmatched_files: true
