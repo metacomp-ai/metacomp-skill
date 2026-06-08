@@ -8,9 +8,9 @@ on:
         required: false
         type: string
       environments:
-        description: 'Environments to build (comma-separated). Default builds all four.'
+        description: 'Environments to build (comma-separated). Default builds all five.'
         required: false
-        default: 'dev,demo,uat,www'
+        default: 'dev,demo,uat,prod,sandbox'
         type: string
 
 permissions:
@@ -22,72 +22,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Read skill versions from SKILL.md frontmatter
-        id: ver
-        run: |
-          set -euo pipefail
-          get_ver() { awk '/^version:/ { gsub(/[",]/,"",$2); print $2; exit }' "$1"; }
-          {
-            echo "deposit=$(get_ver MetaComp-Deposit/SKILL.md)"
-            echo "withdrawal=$(get_ver MetaComp-Withdrawal/SKILL.md)"
-            echo "swap=$(get_ver MetaComp-Swap/SKILL.md)"
-            echo "wealth=$(get_ver MetaComp-Wealth/SKILL.md)"
-            echo "visionx=$(get_ver MetaComp-VisionX/SKILL.md)"
-          } | tee -a "$GITHUB_OUTPUT"
-
-      - name: Build bundles per environment
+      - name: Build per-environment zips
         env:
-          DEPOSIT_VER: ${{ steps.ver.outputs.deposit }}
-          WITHDRAWAL_VER: ${{ steps.ver.outputs.withdrawal }}
-          SWAP_VER: ${{ steps.ver.outputs.swap }}
-          WEALTH_VER: ${{ steps.ver.outputs.wealth }}
-          VISIONX_VER: ${{ steps.ver.outputs.visionx }}
           ENVS: ${{ inputs.environments }}
         run: |
           set -euo pipefail
-          mkdir -p dist
+          chmod +x build.sh
           IFS=',' read -ra ENV_LIST <<< "$ENVS"
           for env in "${ENV_LIST[@]}"; do
             env=$(echo "$env" | xargs)
             [[ -z "$env" ]] && continue
             echo "::group::Build $env"
-
-            stage="build/$env"
-            inner="$stage/_inner"
-            rm -rf "$stage"
-            mkdir -p "$inner"
-
-            # Copy each skill into a flat staging directory; folder names
-            # inside the zip match the SKILL.md `name:` field.
-            cp -r MetaComp-Deposit    "$stage/MetaComp-Deposit"
-            cp -r MetaComp-Withdrawal "$stage/MetaComp-Withdrawal"
-            cp -r MetaComp-Swap       "$stage/MetaComp-Swap"
-            cp -r MetaComp-Wealth     "$stage/MetaComp-Wealth"
-            cp -r MetaComp-VisionX    "$stage/MetaComp-VisionX"
-
-            # Strip macOS metadata files before zipping.
-            find "$stage" \( -name ".DS_Store" -o -name "__MACOSX" \) -exec rm -rf {} + 2>/dev/null || true
-
-            # Environment URL substitution.
-            #   - Replace https://demo.metacomp.ai (with any path) -> https://<env>.metacomp.ai
-            #   - Leaves untouched: npm package "@metacomp/visionx-kyt-mcp",
-            #     connector names "metacomp mcp" / "metacomp-mcp",
-            #     plain-text "metacomp.ai" (brand mention, no scheme),
-            #     and "https://camp.mce.sg" (Wealth investor declaration, different domain).
-            find "$stage" -type f \( -name "*.md" -o -name "*.txt" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" \) \
-              -exec sed -i "s|https://demo\.metacomp\.ai|https://${env}.metacomp.ai|g" {} +
-
-            # Inner zips: one per skill, name = <skill>-<env>-<version>.zip
-            (cd "$stage" && zip -qr "_inner/MetaComp-Deposit-${env}-${DEPOSIT_VER}.zip"       MetaComp-Deposit)
-            (cd "$stage" && zip -qr "_inner/MetaComp-Withdrawal-${env}-${WITHDRAWAL_VER}.zip" MetaComp-Withdrawal)
-            (cd "$stage" && zip -qr "_inner/MetaComp-Swap-${env}-${SWAP_VER}.zip"             MetaComp-Swap)
-            (cd "$stage" && zip -qr "_inner/MetaComp-Wealth-${env}-${WEALTH_VER}.zip"         MetaComp-Wealth)
-            (cd "$stage" && zip -qr "_inner/MetaComp-VisionX-${env}-${VISIONX_VER}.zip"       MetaComp-VisionX)
-
-            # Outer bundle: flat zip of the 5 inner zips
-            (cd "$inner" && zip -qj "$GITHUB_WORKSPACE/dist/metacomp-skills-${env}.zip" *.zip)
-
-            ls -la "dist/metacomp-skills-${env}.zip"
+            ./build.sh "$env"
             echo "::endgroup::"
           done
 
@@ -97,9 +43,9 @@ jobs:
           set -euo pipefail
           shopt -s nullglob
           {
-            echo "## Built bundles"
+            echo "## Built zips"
             echo
-            for f in dist/*.zip; do
+            for f in dist/*/MetaComp-*.zip; do
               echo "### \`$(basename "$f")\`"
               echo
               echo '```'
@@ -113,7 +59,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: skill-bundles
-          path: dist/*.zip
+          path: dist/*/MetaComp-*.zip
           retention-days: 30
 
       - name: Create GitHub Release
@@ -122,6 +68,6 @@ jobs:
         with:
           tag_name: ${{ inputs.release_tag }}
           name: ${{ inputs.release_tag }}
-          files: dist/*.zip
+          files: dist/*/MetaComp-*.zip
           generate_release_notes: true
           fail_on_unmatched_files: true
