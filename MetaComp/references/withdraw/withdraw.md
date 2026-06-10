@@ -88,14 +88,14 @@ Before interpreting any user message as a step-specific input, check these keywo
   > Withdrawal cancelled. Let me know when you want to try again. / 已取消本次提现。您随时可以重新发起。
 - **Back / Previous step**: 返回 / back / 上一步 / previous → return to the most recent step that accepted user input; skip intermediate auto-steps. Output:
   > Going back to the previous step. / 返回上一步。
-- **Confirm** (only at the confirmation card): 确认 / confirm / 确定 / yes / 是 → proceed to execute.
+- **Confirm** (only at the confirmation card): per the SKILL.md **Transaction Confirmation Gate**, accept ONLY an exact `confirm` / `确认` (trimmed, case-folded). `确定` / `yes` / `是` / `好` / `ok` no longer count → re-ask for `confirm` / `确认`.
 
 At a confirmation card, prompt:
 > Type "confirm" to proceed, "back" to edit, or "cancel" to abort. / 输入"确认"继续，"返回"修改，"取消"退出。
 
 ## Submit Gate — Write Operation Confirmation
 
-**Same priority as Token Guard.** Applies to any `execute_*_withdrawal` write tool. Estimate-first, explicit post-estimate confirmation (`confirm` / `确认` / `yes` / `是`), structured submit response. Crypto withdrawal additionally requires the irreversibility warning at the confirmation card (STEP 8 of `crypto-withdrawal.md`) — never skip it. See `crypto-withdrawal.md` / `fiat-withdrawal.md` for the per-flow confirmation cards.
+**Same priority as Token Guard.** Applies to any `execute_*_withdrawal` write tool. Estimate-first, explicit post-estimate confirmation that satisfies the SKILL.md **Transaction Confirmation Gate** (exact `confirm` / `确认` only — never `yes` / `是` / `确定`), structured submit response. Crypto withdrawal additionally requires the irreversibility warning at the confirmation card (STEP 8 of `crypto-withdrawal.md`) — never skip it. See `crypto-withdrawal.md` / `fiat-withdrawal.md` for the per-flow confirmation cards.
 
 **Funds-First precondition (SKILL.md → Funds-First Gate).** Before that confirmation card and the verification code, the balance must already be confirmed to cover the **total debit** (`get_withdrawal_quote` → `balance.sufficient`, compared against `fee.withdrawalAmount`, not the recipient amount). A `sufficient:false` (or a fresh `get_account_detail` showing a shortfall) stops the flow with the shortfall message — it never reaches the card or the code. This is the fix for the "walked all 7 steps + entered a TOTP, then failed at execute on 0 balance" case.
 

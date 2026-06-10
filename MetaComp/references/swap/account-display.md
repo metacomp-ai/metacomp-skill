@@ -65,9 +65,9 @@ Below the overview, show per-currency balances from `data.instrumentInfoMap`.
 ```
 **Fiat Account Detail** (Account: {holderCode})
 
-| Currency | Available          | Pending | Incoming | USD Equivalent     |
-|----------|--------------------|---------|----------|--------------------|
-| USD      | 13,887,754,187.50  | 10      | —        | 13,887,754,187.50  |
+| Currency | Available         | Pending | Incoming | USD Equivalent    | Total (USD)       |
+|----------|-------------------|---------|----------|-------------------|-------------------|
+| USD      | 13,887,754,187.50 | 10      | —        | 13,887,754,187.50 | 13,887,754,197.50 |
 
 > Other 35 currencies have zero balance.
 ```
@@ -75,10 +75,10 @@ Below the overview, show per-currency balances from `data.instrumentInfoMap`.
 ```
 **Cryptocurrency Detail** (Account: {holderCode})
 
-| Currency | Available | Pending | Incoming | USD Equivalent |
-|----------|-----------|---------|----------|----------------|
-| USDT     | 80.00     | —       | 64.00    | 79.99          |
-| USDC     | —         | —       | 9.99     | —              |
+| Currency | Available | Pending | Incoming | USD Equivalent | Total (USD) |
+|----------|-----------|---------|----------|----------------|-------------|
+| USDT     | 80.00     | —       | 64.00    | 79.99          | 79.99       |
+| USDC     | —         | —       | 9.99     | —              | —           |
 
 > Other 22 currencies have zero balance.
 ```
@@ -88,9 +88,9 @@ Below the overview, show per-currency balances from `data.instrumentInfoMap`.
 ```
 **法币账户明细**（账户：{holderCode}）
 
-| 币种 | 可用余额            | 待处理 | 待入账 | USD 等值            |
-|-----|--------------------| ------|-------|---------------------|
-| USD | 13,887,754,187.50  | 10    | —     | 13,887,754,187.50   |
+| 币种 | 可用余额            | 待处理 | 待入账 | USD 等值            | 总计 (USD)          |
+|-----|--------------------| ------|-------|---------------------|---------------------|
+| USD | 13,887,754,187.50  | 10    | —     | 13,887,754,187.50   | 13,887,754,197.50   |
 
 > 其他 35 个币种余额为 0。
 ```
@@ -98,10 +98,10 @@ Below the overview, show per-currency balances from `data.instrumentInfoMap`.
 ```
 **加密货币明细**（账户：{holderCode}）
 
-| 币种  | 可用余额 | 待处理 | 待入账 | USD 等值 |
-|------|---------|-------|-------|---------|
-| USDT | 80.00   | —     | 64.00 | 79.99   |
-| USDC | —       | —     | 9.99  | —       |
+| 币种  | 可用余额 | 待处理 | 待入账 | USD 等值 | 总计 (USD) |
+|------|---------|-------|-------|---------|----------|
+| USDT | 80.00   | —     | 64.00 | 79.99   | 79.99    |
+| USDC | —       | —     | 9.99  | —       | —        |
 
 > 其他 22 个币种余额为 0。
 ```
@@ -116,6 +116,7 @@ From `get_account_detail` response, for each entry in `instrumentInfoMap`:
 | Pending | `pendingAmount` (0 → `—`) |
 | Incoming | `pendingCreditAmount` (0 → `—`) |
 | USD Equivalent | `availableAmountDisplay` (0 → `—`) |
+| Total (USD) | `totalAmountDisplay` (0 → `—`) — authoritative; never compute |
 
 ---
 
@@ -128,9 +129,9 @@ Same display rules as Fiat Account Detail. Show currencies where `availableAmoun
 ```
 **Investment Fiat Detail** (Account: {holderCode})
 
-| Currency | Available          | Pending  | Incoming | USD Equivalent     |
-|----------|--------------------|----------|----------|--------------------|
-| USD      | 41,666,036,019.88  | 200,000  | —        | 41,666,036,019.88  |
+| Currency | Available         | Pending | Incoming | USD Equivalent    | Total (USD)       |
+|----------|-------------------|---------|----------|-------------------|-------------------|
+| USD      | 41,666,036,019.88 | 200,000 | —        | 41,666,036,019.88 | 41,666,236,019.88 |
 
 > Other 72 currencies have zero balance.
 ```
@@ -140,9 +141,9 @@ Same display rules as Fiat Account Detail. Show currencies where `availableAmoun
 ```
 **投资法币明细**（账户：{holderCode}）
 
-| 币种 | 可用余额             | 待处理   | 待入账 | USD 等值             |
-|-----|---------------------|---------|-------|---------------------|
-| USD | 41,666,036,019.88   | 200,000 | —     | 41,666,036,019.88   |
+| 币种 | 可用余额             | 待处理   | 待入账 | USD 等值             | 总计 (USD)           |
+|-----|---------------------|---------|-------|---------------------|---------------------|
+| USD | 41,666,036,019.88   | 200,000 | —     | 41,666,036,019.88   | 41,666,236,019.88   |
 
 > 其他 72 个币种余额为 0。
 ```
@@ -182,11 +183,11 @@ Same display rules. Note: some instruments may have `productCode: null` (e.g. `D
 ```
 **Investment Products Detail** (Account: {holderCode})
 
-| Currency    | Available    | Pending | Incoming | USD Equivalent |
-|-------------|------------- |---------|----------|----------------|
-| USD         | 1,165,544.00 | 11      | —        | 1,165,544.00   |
-| Primo_Link  | 998,000.00   | —       | —        | 998,000.00     |
-| DFRAIS001   | 136.00       | 114     | —        | 136.00         |
+| Currency    | Available    | Pending | Incoming | USD Equivalent | Total (USD)  |
+|-------------|------------- |---------|----------|----------------|--------------|
+| USD         | 1,165,544.00 | 11      | —        | 1,165,544.00   | 1,165,555.00 |
+| Primo_Link  | 998,000.00   | —       | —        | 998,000.00     | 998,000.00   |
+| DFRAIS001   | 136.00       | 114     | —        | 136.00         | 250.00       |
 
 > Other 70 currencies have zero balance.
 ```
@@ -196,11 +197,11 @@ Same display rules. Note: some instruments may have `productCode: null` (e.g. `D
 ```
 **投资产品明细**（账户：{holderCode}）
 
-| 币种        | 可用余额      | 待处理 | 待入账 | USD 等值      |
-|------------|-------------|-------|-------|--------------|
-| USD        | 1,165,544.00| 11    | —     | 1,165,544.00 |
-| Primo_Link | 998,000.00  | —     | —     | 998,000.00   |
-| DFRAIS001  | 136.00      | 114   | —     | 136.00       |
+| 币种        | 可用余额      | 待处理 | 待入账 | USD 等值      | 总计 (USD)    |
+|------------|-------------|-------|-------|--------------|--------------|
+| USD        | 1,165,544.00| 11    | —     | 1,165,544.00 | 1,165,555.00 |
+| Primo_Link | 998,000.00  | —     | —     | 998,000.00   | 998,000.00   |
+| DFRAIS001  | 136.00      | 114   | —     | 136.00       | 250.00       |
 
 > 其他 70 个币种余额为 0。
 ```
