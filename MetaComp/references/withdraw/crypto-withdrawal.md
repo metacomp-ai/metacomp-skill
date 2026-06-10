@@ -568,16 +568,14 @@ know any deduction, which is applied at execution):
 Then:
 
 ```
-⚠ **Irreversible operation.** Once submitted, the on-chain transaction cannot be recalled. Please verify the destination address and network are exactly correct, and provide your **verification code** (the 6-digit code from your authenticator app, e.g. Google Authenticator).
+⚠ **Irreversible operation.** Once submitted, the on-chain transaction cannot be recalled. Please verify the destination address and network are exactly correct before confirming. (You will enter your verification code in the next step.)
 ```
 
 End the card with:
 
-> Type "confirm" + your 6-digit code to proceed, "back" to edit previous fields, or "cancel" to abort. / 输入"确认"和 6 位验证码继续，"返回"修改前序字段，"取消"退出。
+> Type `confirm` or `确认` to proceed, "back" to edit previous fields, or "cancel" to abort. / 输入 `confirm` 或 `确认` 继续，"返回"修改前序字段，"取消"退出。
 
-⛔ **STOP.** Wait for:
-1. Explicit confirmation ("yes/confirm/确认/好/ok"), **and**
-2. A `verificationCode` string.
+⛔ **STOP.** Per the SKILL.md **Transaction Confirmation Gate**, accept ONLY an exact `confirm` / `确认` here (trimmed, case-folded). Anything else — `yes` / `好` / `ok` / `确定`, or a verification code typed early — does NOT count → re-ask for `confirm` / `确认`. Do NOT request or accept the verification code at this step; the code is asked separately in STEP 8.1 only AFTER a valid confirmation. `back` / `cancel` route as below.
 
 Keyword routing (checked before step-specific parsing):
 - `back` / `返回` / `上一步` →
@@ -597,12 +595,22 @@ their TOTP rotated), they should NOT use "back" — just re-send the
 correct code. "back" is destructive in the third-party path because it
 forces a fresh upload.
 
-If the user only confirms without a code, ask once for the code. If only a code without confirmation, ask once for explicit confirmation.
+## STEP 8.1 — Verification code (only after an exact `confirm` / `确认`)
+
+Reached ONLY once STEP 8 received an exact `confirm` / `确认`. Prompt:
+
+> Please enter your 6-digit verification code from your authenticator app (e.g. Google Authenticator). / 请输入您认证器应用中的 6 位动态验证码（如 Google Authenticator）。
+
+⛔ **STOP.** Wait for a `verificationCode` string.
 
 If the supplied code is not exactly 6 digits:
 > The code must be exactly 6 digits. Please try again. / 验证码必须是 6 位数字，请重新输入。
 
-On both received → proceed to STEP 9 (the "Execute" section below). Progress header counts:
+If the user wants to retype the code (e.g. their TOTP rotated), they just re-send the correct code — do NOT use "back" (back is destructive in the third-party path, forcing a fresh upload). `cancel` / `取消` aborts.
+
+Once a valid 6-digit code is received → proceed to STEP 9 (Execute).
+
+Once both the confirmation (STEP 8) and the code (STEP 8.1) are in hand → proceed to STEP 9 (the "Execute" section below). Progress header counts:
 - First-party: confirmation card is `Step 6/7`, execution is `Step 7/7`.
 - Third-party: confirmation card is `Step 8/9`, execution is `Step 9/9`.
 

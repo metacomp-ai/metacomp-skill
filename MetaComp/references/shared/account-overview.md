@@ -60,9 +60,9 @@ After the Account Overview, call `get_account_detail` for **fiat**, **crypto**, 
 ```
 **Fiat Account Detail** (Account: {holderCode})
 
-| Currency | Available          | Pending | Incoming | USD Equivalent     |
-|----------|--------------------|---------|----------|--------------------|
-| USD      | 10,000.00          | —       | —        | 10,000.00          |
+| Currency | Available | Pending | Incoming | USD Equivalent | Total (USD) |
+|----------|-----------|---------|----------|----------------|-------------|
+| USD      | 10,000.00 | —       | —        | 10,000.00      | 10,000.00   |
 
 > Other 35 currencies have zero balance.
 ```
@@ -70,9 +70,9 @@ After the Account Overview, call `get_account_detail` for **fiat**, **crypto**, 
 ```
 **Cryptocurrency Detail** (Account: {holderCode})
 
-| Currency | Available | Pending | Incoming | USD Equivalent |
-|----------|-----------|---------|----------|----------------|
-| USDT     | 80.00     | —       | 64.00    | 79.99          |
+| Currency | Available | Pending | Incoming | USD Equivalent | Total (USD) |
+|----------|-----------|---------|----------|----------------|-------------|
+| USDT     | 80.00     | —       | 64.00    | 79.99          | 79.99       |
 
 > Other 22 currencies have zero balance.
 ```
@@ -82,9 +82,9 @@ After the Account Overview, call `get_account_detail` for **fiat**, **crypto**, 
 ```
 **法币账户明细**（账户：{holderCode}）
 
-| 币种 | 可用余额    | 待处理 | 待入账 | USD 等值    |
-|-----|-----------|-------|-------|-----------|
-| USD | 10,000.00 | —     | —     | 10,000.00 |
+| 币种 | 可用余额    | 待处理 | 待入账 | USD 等值    | 总计 (USD)  |
+|-----|-----------|-------|-------|-----------|-----------|
+| USD | 10,000.00 | —     | —     | 10,000.00 | 10,000.00 |
 
 > 其他 35 个币种余额为 0。
 ```
@@ -92,9 +92,9 @@ After the Account Overview, call `get_account_detail` for **fiat**, **crypto**, 
 ```
 **加密货币明细**（账户：{holderCode}）
 
-| 币种  | 可用余额 | 待处理 | 待入账 | USD 等值 |
-|------|---------|-------|-------|---------|
-| USDT | 80.00   | —     | 64.00 | 79.99   |
+| 币种  | 可用余额 | 待处理 | 待入账 | USD 等值 | 总计 (USD) |
+|------|---------|-------|-------|---------|----------|
+| USDT | 80.00   | —     | 64.00 | 79.99   | 79.99    |
 
 > 其他 22 个币种余额为 0。
 ```
@@ -108,9 +108,9 @@ Same columns, sorting, `—`-for-zero, non-zero-only filter, and "Other {N} curr
 ```
 **Same-Name Account Detail** (Account: {holderCode})
 
-| Currency | Available  | Pending | Incoming | USD Equivalent |
-|----------|------------|---------|----------|----------------|
-| USD      | 99,800.00  | —       | —        | 99,800.00      |
+| Currency | Available | Pending | Incoming | USD Equivalent | Total (USD) |
+|----------|-----------|---------|----------|----------------|-------------|
+| USD      | 99,800.00 | —       | —        | 99,800.00      | 99,800.00   |
 
 > Other 35 currencies have zero balance.
 ```
@@ -120,9 +120,9 @@ Same columns, sorting, `—`-for-zero, non-zero-only filter, and "Other {N} curr
 ```
 **同名账户明细**（账户：{holderCode}）
 
-| 币种 | 可用余额   | 待处理 | 待入账 | USD 等值   |
-|-----|-----------|-------|-------|-----------|
-| USD | 99,800.00 | —     | —     | 99,800.00 |
+| 币种 | 可用余额   | 待处理 | 待入账 | USD 等值   | 总计 (USD)  |
+|-----|-----------|-------|-------|-----------|-----------|
+| USD | 99,800.00 | —     | —     | 99,800.00 | 99,800.00 |
 
 > 其他 35 个币种余额为 0。
 ```
@@ -138,6 +138,7 @@ From `get_account_detail` response, for each entry in `instrumentInfoMap`:
 | Pending        | `pendingAmount` (0 → `—`)         |
 | Incoming       | `pendingCreditAmount` (0 → `—`)   |
 | USD Equivalent | `availableAmountDisplay` (0 → `—`)|
+| Total (USD)    | `totalAmountDisplay` (0 → `—`) — authoritative; never compute |
 
 ---
 

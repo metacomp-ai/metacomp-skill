@@ -1,12 +1,13 @@
 ---
 name: MetaComp
-version: 1.12.0
+version: 1.15.0
 description: >
   MetaComp + VisionX — one skill for all MetaComp account and Web3-security
   actions over the metacomp-mcp connector; routes to the matching scenario. Use it
   whenever the user wants to: DEPOSIT / receive funds (deposit, 充值, 入金, 收款, 收钱);
   WITHDRAW / cash out (withdraw, cash out, 提现, 出金, 转出, 取钱, withdrawal history, 出金记录);
   SWAP / exchange currency (swap, exchange, convert, 换汇, 换钱, "100k USDT to SGD", swap history, 换汇记录);
+  GET A RATE / PRICE (汇率, 查汇率, 报价, 价格, "price X to Y", "X to Y rate", "how much is X in Y", "X 值多少 Y");
   WEALTH / FIP (wealth, fixed income, subscribe, 理财, 买理财, 认购, FIP 申购);
   VIEW BALANCE / ASSETS (check balance, view assets, account overview, 查余额, 查看资产, 账户概览);
   or WEB3 SECURITY via VisionX (a wallet address 0x…/Bitcoin/Tron, a transaction hash,
@@ -38,6 +39,7 @@ This skill is a **router**. Before calling any MCP tool, before writing a single
 | deposit / receive / collect / 充值 / 入金 / 收款 / 收钱 | **deposit** (redirect → web portal; no in-skill flow) |
 | withdraw / cash out / 提现 / 出金 / 转出 / 取钱, or "withdrawal history / status / 出金记录" | **withdraw** |
 | swap / exchange / convert / 换汇 / 换钱 / "X to Y" | **swap** |
+| price / rate / valuation, NO transactional verb: "汇率", "price X to Y", "X to Y rate", "how much is X in Y", "X 值多少 Y", "报价" — wants an indicative rate / valuation, NOT to transact (even if an amount is present) | **rate** (read-only indicative exchange rate) |
 | "swap history / trade history / exchange history / 换汇记录 / 换汇历史 / 兑换记录 / 我换过哪些" — wants *past* swaps, not a new exchange | **swap-history** (read-only list of past OTC swaps) |
 | wealth / FIP / fixed income / 理财 / 认购 | **wealth** |
 | view / list **registered bank accounts** ("我的银行账户/银行卡/收款账户有哪些", "what bank accounts do I have", "list my withdrawal accounts") — wants the account roster + first/third-party labels, **not** balances | **accounts** (read-only bank-account roster) |
@@ -47,6 +49,7 @@ Ambiguity rules:
 - **accounts vs view-only:** a question about the user's *bank accounts / bank cards / 收款账户* (which accounts are on file, are they mine or a third party's) → **accounts** (the bank-account roster). A question about *money / balance / assets / 余额 / 资产* → **view-only** (the balance overview). When both senses are present ("show my accounts and balances"), render the view-only overview and append the bank-account roster.
 - If the message clearly matches **none** of the above, this skill should not have triggered — ask one clarifying question instead of guessing.
 - **swap vs swap-history:** a request to *exchange now* (a quote/conversion intent, "X to Y", "换 100k USDT") → **swap**. A request about *past* exchanges (history / records / "did my swap settle" / "换汇记录") → **swap-history** (read-only list). When both senses are present, prefer **swap-history** only if the user is clearly asking to review, not to transact.
+- **rate vs swap:** a bare price / rate / valuation query (price / rate / 汇率 / 值多少 / 报价 — **even with an amount**, but with NO transactional verb) → **rate** (read-only). A transactional verb (swap / exchange / convert / 换 / 兑换 / cash out) → **swap**. When both a rate word and a transactional verb appear, prefer **swap**. Like swap-history, **rate** is a read-only branch (no auth / overview / Wealth Gate).
 - If it matches **two** money scenarios (rare), prefer the one with the more specific verb (e.g. "swap then withdraw" → start with **swap**).
 - A Web3 address / tx-hash signal **always** routes to **visionx**, never to a money scenario.
 
@@ -70,6 +73,8 @@ Ambiguity rules:
 
 **Swap-history branch** (intent = swap-history) — read ONLY `references/swap/swap-history.md` and follow it. This is a lightweight read-only view: do NOT read `auth-kyc-setup.md` / `account-overview.md` / `wealth-recommendation.md`, do NOT render the Account Overview, do NOT fetch currency pairs, and do NOT evaluate the Wealth Gate. Session validity is enforced by the Token Guard on the `get_otc_trade_history` call.
 
+**Rate branch** (intent = rate) — read ONLY `references/swap/rate.md` and follow it. This is a lightweight read-only view: do NOT read `auth-kyc-setup.md` / `account-overview.md` / `wealth-recommendation.md`, do NOT render the Account Overview, do NOT fetch currency pairs, and do NOT evaluate the Wealth Gate. Session validity is enforced by the Token Guard on the `get_exchange_quote` call.
+
 **VisionX branch** — read `references/visionx/visionx.md` and follow its STEP ZERO (it lists its own sub-files).
 
 > Each scenario entry file points to the leaf flow files it needs (e.g. `withdraw.md` → `fiat-withdrawal.md` / `crypto-withdrawal.md`). Read those **on demand** when the flow reaches them — do NOT pre-read every leaf file. That on-demand loading is the whole point of this structure.
@@ -82,6 +87,7 @@ Do not proceed until this line appears. Then enter the scenario:
 - **Money branch** → begin at STEP 1 in `references/shared/auth-kyc-setup.md`.
 - **Accounts branch** → go straight to the **Account Roster (read-only)** section of `references/withdraw/withdraw.md` (no auth-kyc-setup, no overview).
 - **Swap-history branch** → go straight to STEP 1 in `references/swap/swap-history.md` (no auth-kyc-setup, no overview).
+- **Rate branch** → go straight to STEP 1 in `references/swap/rate.md` (no auth-kyc-setup, no overview).
 - **VisionX branch** → follow `references/visionx/visionx.md`.
 
 ---
@@ -138,6 +144,24 @@ Rules:
    - Success → resume from the **exact step** where the token expired
 
 **This rule takes priority over all step-specific error handling.** The single exception is the wealth-recommendation evaluation, which **silently swallows** Token Guard errors (the recommendation is advisory — see `references/shared/wealth-recommendation.md`).
+
+## Transaction Confirmation Gate — final mutation requires an exact `confirm` / `确认` (compliance)
+
+**Same priority as Token Guard.** Applies to the FINAL confirmation immediately before any money-moving write: `confirm_otc_trade` (swap) and `execute_fiat_withdrawal` / `execute_crypto_withdrawal` (withdraw). Future `execute_*` write tools inherit this by naming convention.
+
+**Acceptance — exact match only.** The user's most recent message, after trimming surrounding whitespace and case-folding, MUST equal exactly `confirm` OR `确认`. Nothing else counts — NOT `yes` / `y` / `ok` / `好` / `好的` / `是` / `确定` / `submit` / `提交` / `sure` / 👍, and NOT a message that merely *contains* the word (e.g. "先别 confirm", "我不想 confirm 了"). Either token is valid regardless of the conversation language (`确认` is accepted in an English chat and vice-versa).
+
+**On any non-matching reply at this gate** → do NOT call the write tool; re-ask once in the user's language:
+
+> 请输入 `confirm` 或 `确认` 以确认，或输入 `取消` 退出。/ Type `confirm` or `确认` to proceed, or `cancel` to abort.
+
+`cancel` / `取消` still aborts; `back` / `返回` still edits where the flow supports it.
+
+**Scope — ONLY the final transaction confirmation.** This gate does NOT apply to: intermediate yes/no choices (e.g. withdraw "first-party / third-party?"), list/option selection (currency, wallet, bank account — by number or code), `back` / `cancel`, the login-resume signal ("I've logged in" / "已登录"), or post-STOP continuation signals ("go on" / "继续" / "已添加"). Those keep their existing parsing.
+
+**Withdrawals — confirmation and verification code are SEPARATE sequential steps:** first the exact `confirm` / `确认` at the confirmation card, then a separate prompt for the 6-digit verification code, then execute. Never bundle the confirmation word and the code into one message.
+
+**Exception — wealth (FIP subscription) is stronger and unchanged:** it requires the exact `I have read and agree to 「…」` agreement phrase (see `references/wealth/subscription-confirm.md`); a bare `confirm` does NOT satisfy it.
 
 ## Freshness Guard — re-fetch after a blocking STOP; never re-assert stale "empty/blocked" state
 
@@ -214,6 +238,16 @@ failed / aborted execution did not move funds — it does not trigger this
 guard. The Token Guard still takes priority over everything. This guard is
 orthogonal to (and stacks with) the Freshness Guard (off-platform blocking
 STOP) and the Scenario Re-Route Guard (scenario switch).
+
+## Balance Read-Freshness & Value Integrity — never quote a money figure that didn't come from a this-turn fetch
+
+Two failure modes this rule kills: (1) answering a balance / asset / "how much {X} do I have" question from a number remembered earlier in the conversation; (2) inventing a per-currency "total" by mentally adding fields, producing a figure that doesn't match the server.
+
+**(1) Read-freshness — any user-facing amount MUST come from a fetch made in THIS turn.** A balance / asset / holdings / "how much {currency}" question is itself a freshness signal: re-invoke `get_account_summary` / `get_account_detail` (the same fetch the current scenario already uses) and answer from that response. NEVER restate a balance, available, pending, or total from earlier conversation context — balances move between turns. This stacks with the existing guards (it is the read-side counterpart to the Post-Mutation and off-platform Freshness Guards) and obeys the same anti-over-fetch limit: if you already fetched the data **earlier in this same turn**, reuse that; an in-flow choice that cannot change server state (picking a list item, entering an amount, confirming) is not a re-fetch trigger. The rule is about never sourcing a money figure from cross-turn memory, not about calling tools repeatedly within one turn. **The refresh is automatic and unconditional — never an opt-in, never caveated.** Re-fetch FIRST, then answer from the fresh response. You MUST NOT: (a) show a figure from earlier in the session and label it "from the account detail fetched earlier" / "as of the last lookup"; (b) ask the user whether to refresh or do a "live lookup" — that choice does not exist, the fetch is unconditional; (c) present stale numbers alongside an offer to refresh. The named anti-pattern to avoid: rendering an earlier balance and then asking "This is from earlier this session — would you like me to refresh it with a live lookup?" — that is wrong; just fetch and answer. The user asking for the balance IS the instruction to fetch; the only thing that defers the fetch is a Token Guard `success:false` + `authPageUrl` (→ login), never a "want me to refresh?" prompt.
+
+**(2) Per-currency total — quote ONLY the API's `totalAmountDisplay` field.** `get_account_detail`'s `instrumentInfoMap[{currency}]` carries an authoritative `totalAmountDisplay` (USD). When the user asks a single currency's total, read that field directly — do NOT compute `available + pending` yourself, do NOT reuse a context value. If the field is absent or `0` for a currency, render its total as `—` rather than fabricating one. (Account-type-level totals come from the Account Overview's own `totalAmount`, unchanged.)
+
+The Token Guard still takes priority: a fetch returning `success:false` + `authPageUrl` → Token Guard, not a balance answer.
 
 ## Wealth Evaluation Gate — Mandatory Pre-Closing Check (money branch, non-wealth scenarios)
 
@@ -340,6 +374,7 @@ on a transaction the account could never fund.
 | accounts | `references/withdraw/withdraw.md` (Account Roster section) | Read-only list of registered bank accounts, grouped + labeled by first-party / third-party / same-name |
 | swap | `references/swap/swap.md` | OTC currency exchange (lock quote → confirm → execute) |
 | swap-history | `references/swap/swap-history.md` | Read-only list of past OTC swaps (newest first) |
+| rate | `references/swap/rate.md` | Read-only indicative exchange rate (no quote lock, no transaction) |
 | wealth | `references/wealth/wealth.md` | FIP subscription (precheck → catalog → agreement → subscribe) |
 | visionx | `references/visionx/visionx.md` | Web3 wallet / transaction security report |
 

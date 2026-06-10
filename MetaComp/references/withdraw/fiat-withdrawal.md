@@ -453,7 +453,7 @@ End the card with:
 > Type "confirm" to proceed, "back" to edit, or "cancel" to abort. / 输入"确认"继续，"返回"修改，"取消"退出。
 
 Keyword routing (checked before step-specific parsing):
-- `confirm` / `确认` / `yes` / `是` → STEP 8
+- exact `confirm` / `确认` (per SKILL.md Transaction Confirmation Gate; `yes` / `是` / `好` / `ok` do NOT count → re-ask) → STEP 8
 - `back` / `返回` / `上一步` →
   - if `withdrawalParty === 2` → return to STEP 6.2 (re-enter `chargeType`); a second `back` from 6.2 returns to 6.1 (re-enter `purposeOfTransaction`). Must not skip STEP 6 on the way back. After re-entering `chargeType`, STEP 6.3 re-fetches the quote so the fee reflects the new bearer.
   - if `withdrawalParty === 1` → return to STEP 5 (re-enter amount).

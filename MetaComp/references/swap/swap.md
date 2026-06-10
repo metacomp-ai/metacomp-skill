@@ -144,7 +144,7 @@ Render per `swap-confirm.md`.
 - **Rate unavailable:** if `exchangeRate === ""`, tell the user the rate is currently unavailable for `{from}/{to}`, suggest retry / different pair, **do NOT call `confirm_otc_trade`**, return to 3C.
 - **Rate display:** when non-empty, show `exchangeRate` from `get_otc_quote` (the 5a-locked value is authoritative — do NOT reuse the 3B browse-time rate).
 - **Rate validity window:** MUST include the `⚠` notice (per `swap-confirm.md`) in the user's language, and it MUST state **how long the quote is valid** (`{validity_window}`). Compute it from `validityPeriod`, which is in **SECONDS** — under 60s say "{validityPeriod} seconds / 秒", otherwise `validityPeriod/60` to one decimal "+ minutes / 分钟" (see `swap-confirm.md` → `validity_window`); never relabel the raw seconds as minutes (`90` = 90 **seconds** = 1.5 min, not 90 minutes). If `validityPeriod` is missing, use the absolute `expiry` timestamp. The notice no longer claims the confirmation will fail on drift — the real 409/410 timing failure is handled at 5c.
-- **Explicit confirmation required** — never auto-confirm.
+- **Explicit confirmation required** — never auto-confirm. Per the SKILL.md **Transaction Confirmation Gate**, accept ONLY an exact `confirm` / `确认` (trimmed, case-folded); `是` / `yes` / `好` / `ok` do NOT count → re-ask for `confirm` / `确认` before calling `confirm_otc_trade`.
 
 ⛔ **STOP.** Wait. Cancel / change → return to 3C (the locked quote expires on its own).
 
@@ -174,7 +174,7 @@ Render per `swap-confirm.md`.
 ☐ STEP 2 2F: unsupported pair (A/B success:false, or C currency in no pair) → degraded to Filtered Currency Pairs + re-ask, never dead-ended?
 ☐ STEP 4: source/target/amount/direction parsed? ambiguous → asked? pair validated? direction=target → get_exchange_quote? source productCode resolved? balance handled per direction (direction=source → early exact check; direction=target → deferred to 5a lock, no pre-check on the unlocked rate)?
 ☐ STEP 5a: get_otc_quote with totalValue as STRING (fromCurrency amount)? on failure showed message + returned to 3C, no auto-retry? preserved quoteCode/exchangeRate/fromCurrency/toCurrency/totalValue?
-☐ STEP 5b: confirmation per swap-confirm.md? rate = exchangeRate string? ⚠ validity notice in user's language? STOP, waited for explicit confirm, no auto-confirm?
+☐ STEP 5b: confirmation per swap-confirm.md? rate = exchangeRate string? ⚠ validity notice in user's language? STOP, waited for an EXACT `confirm` / `确认` (Transaction Confirmation Gate — not 是/yes/好/ok), no auto-confirm?
 ☐ STEP 5c: only after explicit confirm? confirm_otc_trade with quoteCode? get_otc_trade_detail for metadata? Paid/Received/Rate from 5a data NOT trade.tradingAction/baseQuantity/quoteAmount/finalPrice? rate-timing failures (409/410) redirect to https://camp.mce.sg/ with NO re-quote/re-lock? other failures handled?
 ☐ Repeat-swap: a subsequent swap in this conversation runs the full flow from STEP 2, NOT refused as "one swap per conversation"?
 ```

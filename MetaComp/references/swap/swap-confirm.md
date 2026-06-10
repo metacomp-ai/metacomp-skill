@@ -26,7 +26,7 @@ Display when all validations pass, before execution.
 
 ⚠ **The final rate is locked at the moment you confirm**, so due to market movement it may differ slightly from the rate shown above. This quote is valid for about **{validity_window}** — please confirm within that time.
 
-**Confirm execution? (Yes / No)**
+**To execute, type `confirm` or `确认` (exact). Type `cancel` to abort.**
 ```
 
 ### Chinese
@@ -45,7 +45,7 @@ Display when all validations pass, before execution.
 
 ⚠ **汇率以确认时刻的实际成交价为准。** 因市场波动，最终成交汇率可能与此处显示略有不同。本报价有效期约 **{validity_window}**，请在有效期内完成确认。
 
-**确认执行？（是 / 否）**
+**确认执行请精确输入 `confirm` 或 `确认`；输入 `取消` 退出。**
 ```
 
 ### Variable mapping
