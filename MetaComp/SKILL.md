@@ -1,6 +1,6 @@
 ---
 name: MetaComp
-version: 1.15.2
+version: 1.15.3
 description: >
   MetaComp + VisionX — one skill for all MetaComp account and Web3-security
   actions over the metacomp-mcp connector; routes to the matching scenario. Use it
@@ -262,9 +262,9 @@ Before you output any closing / hand-off message (View-Only closing, the swap ST
 
 ⛔ There is no legitimate path where `investor_precheck` is called without first confirming all 5 conditions TRUE. Calling it "just in case" when condition 5 is FALSE (clear business intent) is a rule violation — it wastes a call and may show an unwanted recommendation.
 
-⛔ **No teaser without a precheck call.** You MUST NOT output the Generic Teaser — or any "去完成投资者声明 / 去完成签署 / complete your investor declaration / complete the signing" text — unless `investor_precheck` was invoked THIS turn AND returned ≥1 `false` item AND your teaser lists those exact item(s). All `true` → render the product catalog (Rich Recommendation); not called / errored / Token Guard / skipped → render nothing. Emitting the teaser as a default, from memory, or without citing the real failed item(s) is a rule violation. (This applies to withdraw / swap / deposit money branches alike; it is scenario-agnostic.)
+⛔ **The recommendation is product-catalog-or-nothing — there is no teaser.** The post-balance wealth recommendation (withdraw / swap / deposit scenarios) renders the product catalog (Rich Recommendation) ONLY when `investor_precheck` was invoked THIS turn AND returned **every** value `true`. In every other case — any `false`, not called, errored, Token Guard, or skipped → render **nothing**. You MUST NOT output any "去完成投资者声明 / 去完成签署 / complete your investor declaration / complete the signing" eligibility text in a recommendation context; that wording belongs ONLY to the wealth scenario the user explicitly enters (`references/wealth/wealth.md` STEP 2). Emitting such a block as a default or from memory is a rule violation. (Scenario-agnostic: applies to withdraw / swap / deposit money branches alike.)
 
-**Self-check before sending:** if your draft contains a recommendation block BUT the original message had clear business intent → INVALID, condition 5 should have been FALSE: remove it. If your draft contains the closing sentence BUT you never evaluated the 5 conditions → INVALID: go back to Step A. If your draft contains a "去完成签署 / complete your investor declaration" teaser BUT you have no `investor_precheck` tool result this turn with the cited `false` item(s) → INVALID: remove it (render nothing), or go call `investor_precheck` first. "Evaluation mandatory, render non-blocking" — the *render* never halts the flow; the *evaluation* is never skippable.
+**Self-check before sending:** if your draft contains a recommendation block BUT the original message had clear business intent → INVALID, condition 5 should have been FALSE: remove it. If your draft contains the closing sentence BUT you never evaluated the 5 conditions → INVALID: go back to Step A. If your draft contains any "去完成签署 / complete your investor declaration / complete the signing" eligibility text in a recommendation context → INVALID: remove it (the recommendation is product-catalog-or-nothing; that wording belongs only to the explicit wealth scenario). "Evaluation mandatory, render non-blocking" — the *render* never halts the flow; the *evaluation* is never skippable.
 
 ## Language
 
