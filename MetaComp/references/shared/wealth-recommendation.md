@@ -54,11 +54,10 @@ Call `investor_precheck` (no parameters).
 
 ### Step 2 — Branch on result
 
-- **All values `true`** → proceed to Step 3 (rich recommendation)
-- **Any value `false`** → render the **DATA-BOUND Generic Teaser** below, listing the exact `false` items, then return to the primary flow
-- **Error / Token Guard / `investor_precheck` was NOT called this turn** → render NOTHING (silent skip), return to the primary flow
+- **All values `true`** → proceed to Step 3 (rich recommendation / product catalog)
+- **Anything else** — any value `false`, an error, a Token Guard response, OR `investor_precheck` was NOT called this turn → render NOTHING (silent skip), return to the primary flow
 
-> ⛔ There is exactly ONE no-render path and ONE teaser path: teaser requires a real `investor_precheck` result with ≥1 `false` item. If you cannot point to such a result this turn, the only legal outcome is **silent skip** — never a teaser "by default".
+> ⛔ There is exactly ONE render path and ONE silent-skip path. The recommendation renders **only** when `investor_precheck` was called this turn AND returned **every** value `true` (→ product catalog). In every other case the only legal outcome is **silent skip** — never emit a "go complete signing / 去完成签署" eligibility block as a default.
 
 ### Step 3 — Fetch product summary
 
@@ -175,77 +174,12 @@ After the LAST product section, append exactly ONE closing line. This line **dif
 
 ---
 
-## Generic Teaser Template (precheck returned ≥1 false — DATA-BOUND)
-
-> ⛔ **数据绑定守卫 (DATA-BIND GUARD):** 仅当本轮**真的调用了** `investor_precheck`、其响应含 ≥1 个值为 `false` 的项时,才可渲染本 teaser,且**必须**逐条列出这些 `false` 项(用下方 label 表)。满足以下任一情况 → **什么都不渲染(静默跳过)**,返回主流程:
-> - 本轮没有调用 `investor_precheck`;
-> - 调用报错 / 命中 Token Guard;
-> - 返回值全为 `true`(此时走 **Rich Recommendation**,不是 teaser);
-> - 你指不出具体的 `false` 项。
->
-> 凭记忆、当默认值、或不引用真实 `false` 项地渲染本 teaser,属于规则违规。
-
-### Failed-item label table (authoritative for the teaser; kept in sync with ../wealth/wealth.md STEP 2)
-
-| Server key | 中文 label | English label |
-|---|---|---|
-| `Master Brokerage Agreement & Trading Rules` | 主经纪协议及交易规则 | Master Brokerage Agreement & Trading Rules |
-| `investorDeclarationTag` | 投资者声明 | Investor Declaration |
-
-未知 key → 原样显示 key 作为 label(两种语言相同字符串)。仅列 `false` 项,`true` 项不出现。
-
-### Chinese (canonical)
-
-```
----
-
-💡 **了解 MetaComp 理财**
-
-刚才账户概览显示您有可用余额，MetaComp 提供固定收益理财产品，可助您闲置资金增值。您还差以下步骤即可认购：
-
-- ❌ **{label}**
-- ...
-
-请前往 [MetaComp 官网](https://camp.mce.sg) 完成签署，完成后告诉我「我想看看理财」。
-
----
-```
-
-### English
-
-```
----
-
-💡 **Discover MetaComp Wealth**
-
-The account overview above shows you have available balance. MetaComp offers fixed income products that can help grow these idle funds. You're a few steps away from subscribing:
-
-- ❌ **{label}**
-- ...
-
-Please complete the signing at [MetaComp](https://camp.mce.sg), then say "I'd like to explore wealth products."
-
----
-```
-
-### Template hard rules (every language)
-
-- ❌ NOT a table. Bullet 列表,每个 false 项一行 `- ❌ **{label}**`,无状态列。
-- ❌ Do NOT fabricate per-item status strings(`未签署` / `Not signed` 等)。服务端只返回布尔。
-- ❌ 仅列 `false` 项;`true` 项不出现。
-- ❌ Do NOT substitute the URL — 恒为 `https://camp.mce.sg`,任何语言不替换,never render `metacomp.ai` host here.
-- ❌ Do NOT mix languages in `{label}` — 中英列二选一,保持一致。
-- ✅ CTA「我想看看理财」/「I'd like to explore wealth products」保持不变(用于下一轮路由回 wealth 场景)。
-
----
-
 ## Rules
 
-- **No evaluation narration:** Do NOT output any sentence narrating the trigger evaluation before calling `investor_precheck` (e.g. "Now evaluating wealth recommendation — you have significant available balances, so this qualifies" / "现在评估理财推荐——您有可用余额且原始意图是查询余额，满足条件"). The trigger is an internal decision; the user sees only the rendered template (Rich or Generic). The template's opening sentence IS the transition — no prefix needed.
+- **No evaluation narration:** Do NOT output any sentence narrating the trigger evaluation before calling `investor_precheck` (e.g. "Now evaluating wealth recommendation — you have significant available balances, so this qualifies" / "现在评估理财推荐——您有可用余额且原始意图是查询余额，满足条件"). The trigger is an internal decision; the user sees only the rendered product catalog. Its opening heading IS the transition — no prefix needed.
 - **Language matching:** Render the template in the user's conversation language — Chinese user sees the CN template verbatim, English user sees the EN template. Never mix languages in one recommendation block. If the conversation is mixed, default to English.
-- **Non-blocking:** After showing the recommendation (rich or generic), always continue to the primary flow's next step. The recommendation is appended content, not a replacement.
-- **One per conversation:** If the recommendation (either template) has already been displayed in this conversation, do not display it again.
-- **No product specifics in teaser:** When the teaser is rendered (precheck returned ≥1 `false` item), it must NOT contain any product names, codes, APYs, currencies, or term details. This respects the wealth scenario's Absolute Rule that the product catalog is gated behind eligibility.
+- **Non-blocking:** After showing the recommendation (the product catalog), always continue to the primary flow's next step. The recommendation is appended content, not a replacement.
+- **One per conversation:** If the recommendation (the product catalog) has already been displayed in this conversation, do not display it again.
 - **No financial advice:** The recommendation presents factual product information (APY, currencies, terms). Do NOT add commentary like "your assets are concentrated in BTC, consider diversifying" or "you should subscribe." This handles recommendation mechanics only.
-- **Call to action phrasing:** The CTA "我想看看理财" / "I'd like to explore wealth products" is chosen to match the wealth scenario's trigger words, so it naturally routes to the wealth scenario in the next turn.
+- **Call to action phrasing:** The product-catalog closing line's CTA verb is `认购 / subscribe`. It matches the wealth scenario's trigger keywords, so the user's next message naturally routes to the wealth scenario on the next turn. Do NOT change the verb.
 - **Language:** Follow the user's conversation language. Templates above are canonical in Chinese; translate prose/headers for English users. Server-returned strings (`estApr`, `Flexible`) are verbatim.
