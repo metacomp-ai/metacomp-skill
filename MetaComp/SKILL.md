@@ -1,6 +1,6 @@
 ---
 name: MetaComp
-version: 1.15.3
+version: 1.15.9
 description: >
   MetaComp + VisionX — one skill for all MetaComp account and Web3-security
   actions over the metacomp-mcp connector; routes to the matching scenario. Use it
