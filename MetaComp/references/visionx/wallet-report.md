@@ -5,7 +5,7 @@
 ## Step ①: Analysis Preface Content
 
 **Before writing anything — answer this question:**
-Was `get_transaction_security` called earlier in this response?
+Did this response include a transaction screening (i.e. `VisionX` called with `transactionDetails`)?
 
 - **YES** → ⛔ This is a counterparty wallet. Skip Step ① entirely. No preface, no heading, no blockquote. Go directly to Step ②.
 - **NO** → This is a standalone wallet check. Proceed to write the preface below.
@@ -38,14 +38,16 @@ Tone guidance:
 
 ## Step ③: Wallet Security Report (5 sub-sections — all required)
 
+⛔ **USD amount formatting (applies to every USD amount in this section — Wallet Balance, Total Incoming, Total Outgoing):** render the **full** number with thousands separators and two decimals, e.g. `$1,550,000.00 USD`. **Never** abbreviate to K / M / B (no `$1.55M`).
+
 ### Basic Info
 
 | Field | Detail |
 |---|---|
-| Address | `data.address` |
-| Network | `data.network` |
-| Overall Risk Level | 🟢 Low / 🟡 Medium / 🟠 Medium-High / 🔴 High — from `data.level` |
-| Identified Current Wallet Balance | `$data.extra.walletBalance` USD |
+| Address | `walletCheck.data.address` |
+| Network | `walletCheck.data.network` |
+| Overall Risk Level | 🟢 Low / 🟡 Medium / 🟠 Medium-High / 🔴 High — from `walletCheck.data.level` |
+| Identified Current Wallet Balance | `≈ $walletCheck.data.extra.walletBalance` USD |
 
 > ⚠️ **Disclaimer:** We can help you assess whether the target address involves risky funds, but we cannot guarantee 100% accuracy. We will do our best to detect potential risk information. The results are for reference only and should not be relied upon as factual or legal basis for ensuring the absolute safety of a transaction. Users are obligated to comply not only with the facts but also with the regulatory policies, laws, and regulations of their respective countries or regions.
 
@@ -53,10 +55,10 @@ Tone guidance:
 
 | Field | Detail |
 |---|---|
-| Earliest Transaction | `data.extra.earliestTransactionTime` |
-| Latest Transaction | `data.extra.latestTransactionTime` |
-| Total Incoming | `$data.extra.totalIncoming` USD |
-| Total Outgoing | `$data.extra.totalOutgoing` USD |
+| Earliest Transaction | `walletCheck.data.extra.earliestTransactionTime` |
+| Latest Transaction | `walletCheck.data.extra.latestTransactionTime` |
+| Total Incoming | `≈ $walletCheck.data.extra.totalIncoming` USD |
+| Total Outgoing | `≈ $walletCheck.data.extra.totalOutgoing` USD |
 
 Briefly comment on activity span and volume (long-standing vs newly created, notable volume?).
 
@@ -69,7 +71,7 @@ Briefly comment on activity span and volume (long-standing vs newly created, not
 
 ### High Risk Categories Associated
 
-List all items in `data.extra.highRiskCategories` as plain text, e.g.: `Sanctions · Theft · Malware`
+List all items in `walletCheck.data.extra.highRiskCategories` as plain text, e.g.: `Sanctions · Theft · Malware`
 (Styled pill tags are in the widget — plain text only here.)
 
 For each category present, add one sentence:
@@ -96,17 +98,17 @@ If list empty: "✅ No high-risk categories detected."
 2. For each row × vendor cell:
    - Entry found AND `isHighRisk == true` → `<span style="color:#E53030;font-weight:bold">✓</span>`
    - Entry found AND `isHighRisk == false` → `<span style="color:#4CAF50">✗</span>`
-   - Entry not found → `<span style="color:#4CAF50">✗</span>`
+   - Entry not found (this vendor has no data for this category) → `<span style="color:#999">—</span>`
 3. All three vendors have no data for this direction → `<p>— No data from any vendor —</p>`
 
 **Data field mapping (read from ALL THREE vendors for each table):**
 
 | Table | Title | Vendor 1 | Vendor 2 | Vendor 3 |
 |---|---|---|---|---|
-| 1 | 📥 Direct Incoming | `data.extra.vendor1.directIncoming` | `data.extra.vendor2.directIncoming` | `data.extra.vendor3.directIncoming` |
-| 2 | 📤 Direct Outgoing | `data.extra.vendor1.directOutgoing` | `data.extra.vendor2.directOutgoing` | `data.extra.vendor3.directOutgoing` |
-| 3 | 📥 Indirect Incoming | `data.extra.vendor1.indirectIncoming` | `data.extra.vendor2.indirectIncoming` | `data.extra.vendor3.indirectIncoming` |
-| 4 | 📤 Indirect Outgoing | `data.extra.vendor1.indirectOutgoing` | `data.extra.vendor2.indirectOutgoing` | `data.extra.vendor3.indirectOutgoing` |
+| 1 | 📥 Direct Incoming | `walletCheck.data.extra.vendor1.directIncoming` | `walletCheck.data.extra.vendor2.directIncoming` | `walletCheck.data.extra.vendor3.directIncoming` |
+| 2 | 📤 Direct Outgoing | `walletCheck.data.extra.vendor1.directOutgoing` | `walletCheck.data.extra.vendor2.directOutgoing` | `walletCheck.data.extra.vendor3.directOutgoing` |
+| 3 | 📥 Indirect Incoming | `walletCheck.data.extra.vendor1.indirectIncoming` | `walletCheck.data.extra.vendor2.indirectIncoming` | `walletCheck.data.extra.vendor3.indirectIncoming` |
+| 4 | 📤 Indirect Outgoing | `walletCheck.data.extra.vendor1.indirectOutgoing` | `walletCheck.data.extra.vendor2.indirectOutgoing` | `walletCheck.data.extra.vendor3.indirectOutgoing` |
 
 ⛔ All 4 table headers MUST use **Vendor 1 / Vendor 2 / Vendor 3** — never actual vendor names.
 

@@ -66,7 +66,7 @@ show_widget #1 for wallet reports MUST start with this section header — place 
 <!-- metric cards row follows -->
 ```
 
-If this is a counterparty wallet (get_transaction_security was called), change the title to:
+If this is a counterparty wallet (VisionX was called with transactionDetails), change the title to:
 ```html
 <div style="font-size:20px; font-weight:700; color:#b45309; letter-spacing:0.01em">
   🔎 Counterparty Wallet Analysis
@@ -128,10 +128,10 @@ Row B: [ Outgoing Direct ]   [ Outgoing Indirect ]
 
 | Table | Data array | % column header | % field |
 |---|---|---|---|
-| Incoming Direct | `data.extra.directIncoming` (isHighRisk=true) | High-Risk % of Total Received | `totalValueUsdRatio` |
-| Incoming Indirect | `data.extra.indirectIncoming` (isHighRisk=true) | High-Risk % of Total Received | `totalValueUsdRatio` |
-| Outgoing Direct | `data.extra.directOutgoing` (isHighRisk=true) | High-Risk % of Total Sent | `totalValueUsdRatio` |
-| Outgoing Indirect | `data.extra.indirectOutgoing` (isHighRisk=true) | High-Risk % of Total Sent | `totalValueUsdRatio` |
+| Incoming Direct | `walletCheck.data.extra.directIncoming` (isHighRisk=true) | High-Risk % of Total Received | `totalValueUsdRatio` |
+| Incoming Indirect | `walletCheck.data.extra.indirectIncoming` (isHighRisk=true) | High-Risk % of Total Received | `totalValueUsdRatio` |
+| Outgoing Direct | `walletCheck.data.extra.directOutgoing` (isHighRisk=true) | High-Risk % of Total Sent | `totalValueUsdRatio` |
+| Outgoing Indirect | `walletCheck.data.extra.indirectOutgoing` (isHighRisk=true) | High-Risk % of Total Sent | `totalValueUsdRatio` |
 
 **Value formatting:**
 - Amount (`totalValueUsd`) > 0: `≈ 19,653,080.62` (comma separator, no USD suffix)

@@ -4,8 +4,8 @@
 
 Two donut chart panels per wallet report — one for incoming, one for outgoing. Never merged into one chart.
 
-1. **Incoming Exposure** — data merged from `directIncoming` + `indirectIncoming`
-2. **Outgoing Exposure** — data merged from `directOutgoing` + `indirectOutgoing`
+1. **Incoming Exposure** — data merged from `walletCheck.data.extra.directIncoming` + `walletCheck.data.extra.indirectIncoming`
+2. **Outgoing Exposure** — data merged from `walletCheck.data.extra.directOutgoing` + `walletCheck.data.extra.indirectOutgoing`
 
 ---
 
@@ -20,8 +20,8 @@ If only one array is empty, render using the non-empty array alone.
 
 Each entry in the arrays becomes one independent slice. Append a direction suffix to the label:
 
-- Entry from `directIncoming` / `directOutgoing` → label: **`"{tagTypeVerbose} (Direct)"`**
-- Entry from `indirectIncoming` / `indirectOutgoing` → label: **`"{tagTypeVerbose} (Indirect)"`**
+- Entry from `walletCheck.data.extra.directIncoming` / `walletCheck.data.extra.directOutgoing` → label: **`"{tagTypeVerbose} (Direct)"`**
+- Entry from `walletCheck.data.extra.indirectIncoming` / `walletCheck.data.extra.indirectOutgoing` → label: **`"{tagTypeVerbose} (Indirect)"`**
 
 If the same `tagTypeVerbose` appears in both direct and indirect, they remain **separate slices** — do not merge.
 

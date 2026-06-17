@@ -32,16 +32,33 @@ Do not proceed until this line appears in the response.
 
 ```
 ☐ 1. STEP ZERO complete — confirmation line output?
-☐ 2. Probe server: get_wallet_security(network:"Ethereum", walletAddress:"0x000...0")
+☐ 2. Probe server: VisionX(network:"Ethereum", walletAddress:"0x000...0")
        → Error or 401 → Show Setup Guide, STOP
        → Success → continue
 ☐ 3. All required fields collected?
-       Wallet:      network + walletAddress
-       Transaction: network + hash + asset + from + to + direction
-       Transaction: ALWAYS ask "Are you the sender or the recipient?" — never infer
+       Wallet:      walletAddress            (network inferred from address — see Network Inference)
+       Transaction: hash + asset + from + to + direction   (network inferred from from/to — see Network Inference)
+       Transaction: ALWAYS ask "Are you checking the sender or the recipient of this transaction?" — never infer
                     ⛔ After asking, STOP. Do not call any tool, do not output any report.
                     Wait for the user's answer before doing anything else.
 ```
+
+# Network Inference — derive `network` from the address, do NOT ask
+
+Infer `network` **silently** from the address format and call the tool directly.
+Do NOT ask the user for `network` when it can be inferred. Only ask when the
+address matches none of the known patterns below.
+
+| Address format                              | network  |
+|---------------------------------------------|----------|
+| `0x` + 40 hex chars                         | Ethereum |
+| starts with `T` (base58, ~34 chars)         | Tron     |
+| starts with `1` / `3` / `bc1`               | Bitcoin  |
+| none of the above / cannot be determined    | ASK the user which network (only here) |
+
+- Wallet query: infer from `walletAddress`.
+- Transaction query: infer from the `from`/`to` addresses (both sides are the same network).
+- This rule is about the **network only**. It does NOT change the "always ask which party you're checking" rule below, which decides *which wallet* to screen.
 
 ---
 
@@ -55,7 +72,7 @@ Do not proceed until this line appears in the response.
 ## Wallet Report — Standalone or Counterparty (①–⑦)
 
 ① **Analysis Preface** — `>` blockquote with 🔬 (see `wallet-report.md`)
-   ⛔ SKIP entirely if `get_transaction_security` was called in this response (counterparty wallet case).
+   ⛔ SKIP entirely if this response included a transaction screening (i.e. `VisionX` was called with `transactionDetails`) — counterparty wallet case.
       No preface, no heading, no blockquote. Go straight to Step ②.
 
 ② **show_widget #1** — `read_me(["chart"])` first, then widget:
@@ -131,16 +148,15 @@ Enter your `sk-...` API key → **Allow**
 
 # Tool Reference
 
-### `get_wallet_security`
-```json
-{ "network": "Bitcoin|Ethereum|Tron", "walletAddress": "0x..." }
-```
+### `VisionX`
 
-### `get_transaction_security`
+One tool covers wallet-only, transaction-only, and combined screening. Billed once per call.
+
 ```json
 {
   "network": "Bitcoin|Ethereum|Tron",
-  "transactionDetails": [{
+  "walletAddress": "0x...",            // optional — wallet to screen
+  "transactionDetails": [{             // optional — transactions to screen
     "hash": "0x...", "asset": "USDT",
     "direction": "received|sent",
     "from": "0x...", "to": "0x..."
@@ -148,17 +164,28 @@ Enter your `sk-...` API key → **Allow**
 }
 ```
 
-**Wallet only** → `get_wallet_security` only.
+`network` is required **in the tool call** — infer it from the address format (see Network Inference); only ask the user if it cannot be determined. Provide `walletAddress`, `transactionDetails`, or both (at least one).
 
-**Transaction** → call BOTH in parallel, present Transaction Report first:
-1. `get_transaction_security`
-2. `get_wallet_security` on the counterparty wallet
+**Returns:**
+```json
+{
+  "transactionCheck": { ... } | null,
+  "walletCheck": { ... } | null
+}
+```
+- Read `transactionCheck` for the Transaction Report.
+- Read `walletCheck` for the Wallet Report. The counterparty wallet is screened automatically, resolved server-side from the transaction `direction` (received → sender's `from`; sent → recipient's `to`).
 
-### Which wallet to check (always ask — never infer):
-| User role | Wallet to check |
-|---|---|
-| Recipient | `from` address (sender's wallet) |
-| Sender | `to` address (recipient's wallet) |
+**Wallet only** → call `VisionX({ network, walletAddress })`; read `walletCheck`.
+
+**Transaction** → call `VisionX({ network, transactionDetails })` ONCE (one call returns both the transaction and the single counterparty-wallet result). Present the Transaction Report first, then the counterparty Wallet Report from `walletCheck`.
+
+### Set `direction` from which party you're checking (always ask — never infer):
+The "Are you checking the sender or the recipient?" answer sets the transaction `direction`. The server then screens that party's wallet automatically.
+| Party you're checking | `direction` value | Wallet screened (server-side) |
+|---|---|---|
+| Sender | `received` | `from` address (sender's wallet) |
+| Recipient | `sent` | `to` address (recipient's wallet) |
 
 ---
 

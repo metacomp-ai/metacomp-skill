@@ -39,11 +39,11 @@ Connect the figure to this specific case — never cite numbers in isolation.
 
 ## Step ③: Transaction Security Report
 
-**If `data.extra.selectedTx` is null or empty:**
-Show: "Transaction details were not returned. Overall risk level: `data.level`."
+**If `transactionCheck.data.extra.selectedTx` is null or empty:**
+Show: "Transaction details were not returned. Overall risk level: `transactionCheck.data.level`."
 Still render the visualization widget with available fields.
 
-**For each entry in `data.extra.selectedTx`:**
+**For each entry in `transactionCheck.data.extra.selectedTx`:**
 
 **Transaction:** `txHash` (first 10 + last 4 chars)
 
@@ -82,6 +82,6 @@ If `riskSources` empty: "✅ No risk sources identified."
 
 ## Error Handling
 
-- `data.success === false` or `code !== 0` → check failed; suggest retry or metacomp.ai support
+- `transactionCheck.success === false` or `transactionCheck.code !== 0` → check failed; suggest retry or metacomp.ai support
 - 401 → API key invalid/expired; re-authenticate or apply at metacomp.ai
 - Unsupported network → only Bitcoin, Ethereum, Tron supported

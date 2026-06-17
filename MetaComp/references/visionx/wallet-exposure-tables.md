@@ -9,7 +9,7 @@ If an array is empty, still render the table with a placeholder row.
 
 ---
 
-**📥 Direct Incoming Exposure** (`data.extra.directIncoming`)
+**📥 Direct Incoming Exposure** (`walletCheck.data.extra.directIncoming`)
 
 | Category | Amount (USD) | Ratio | Risk |
 |---|---|---|---|
@@ -19,7 +19,7 @@ If empty: `— No direct incoming exposure recorded —`
 
 ---
 
-**📥 Indirect Incoming Exposure** (`data.extra.indirectIncoming`)
+**📥 Indirect Incoming Exposure** (`walletCheck.data.extra.indirectIncoming`)
 
 | Category | Amount (USD) | Ratio | Risk |
 |---|---|---|---|
@@ -29,7 +29,7 @@ If empty: `— No indirect incoming exposure recorded —`
 
 ---
 
-**📤 Direct Outgoing Exposure** (`data.extra.directOutgoing`)
+**📤 Direct Outgoing Exposure** (`walletCheck.data.extra.directOutgoing`)
 
 | Category | Amount (USD) | Ratio | Risk |
 |---|---|---|---|
@@ -39,7 +39,7 @@ If empty: `— No direct outgoing exposure recorded —`
 
 ---
 
-**📤 Indirect Outgoing Exposure** (`data.extra.indirectOutgoing`)
+**📤 Indirect Outgoing Exposure** (`walletCheck.data.extra.indirectOutgoing`)
 
 | Category | Amount (USD) | Ratio | Risk |
 |---|---|---|---|
