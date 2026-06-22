@@ -111,12 +111,12 @@ Both rows are always present:
   <table style="width:100%; border-collapse:collapse; font-size:13px">
     <tbody>
       <tr>
-        <td style="padding:7px 10px; border:1px solid #ddd; background:#f7f7f7; width:50%">{Is Flagged Exchange Wallet}</td>
-        <td style="padding:7px 10px; border:1px solid #ddd">{Yes | No}</td>
+        <td style="padding:7px 10px; border:1px solid rgba(128,128,128,0.35); font-weight:600; width:50%">{Is Flagged Exchange Wallet}</td>
+        <td style="padding:7px 10px; border:1px solid rgba(128,128,128,0.35)">{Yes | No}</td>
       </tr>
       <tr>
-        <td style="padding:7px 10px; border:1px solid #ddd; background:#f7f7f7">{Exchange}</td>
-        <td style="padding:7px 10px; border:1px solid #ddd">{<strong>exchangeName</strong> | —}</td>
+        <td style="padding:7px 10px; border:1px solid rgba(128,128,128,0.35); font-weight:600">{Exchange}</td>
+        <td style="padding:7px 10px; border:1px solid rgba(128,128,128,0.35)">{<strong>exchangeName</strong> | —}</td>
       </tr>
     </tbody>
   </table>
