@@ -76,7 +76,7 @@ address matches none of the known patterns below.
       No preface, no heading, no blockquote. Go straight to Step ②.
 
 ② **show_widget #1** — `read_me(["chart"])` first, then widget:
-   section header (colored title + divider) + metric cards + 4 High Risk Exposure Tables + 2 donut chart panels
+   section header (colored title + divider) + metric cards + wallet exchange identifier table + 4 High Risk Exposure Tables + 2 donut chart panels
    (see `visualization.md` for layout; `chart-spec.md` for donut panel logic)
    ⚠ The first chart call of a session cold-starts — if `read_me(["chart"])` or a `show_widget` errors/returns empty, **retry that call once** before falling back. Never degrade charts to text tables or say the tool is "unresponsive" after a single failure (see `visualization.md` → Widget Render Reliability).
 
@@ -108,6 +108,7 @@ address matches none of the known patterns below.
 ```
 ☐ Analysis Preface output? [skip if counterparty]
 ☐ show_widget #1: metric cards + 4 Exposure Tables + donut panels (skip panel if both source arrays empty)?
+☐ show_widget #1: wallet exchange identifier table present (below metric cards, from walletCheck.data.extra.exchangeName)?
 ☐ Wallet Security Report — all 5 sub-sections:
      Basic Info table?
      Transaction Timeline table + activity comment?

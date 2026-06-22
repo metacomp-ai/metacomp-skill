@@ -45,6 +45,7 @@ What you must NOT do, because it produces exactly the broken first-conversation 
 ```html
 <div style="width:100%; font-family:sans-serif">
   <!-- metric cards row -->
+  <!-- wallet exchange identifier table (wallet only) -->
   <!-- high risk exposure tables (wallet only) -->
   <!-- chart sections -->
 </div>
@@ -73,6 +74,54 @@ If this is a counterparty wallet (VisionX was called with transactionDetails), c
 </div>
 ```
 (use amber/orange `#b45309` to visually distinguish from the transaction report above)
+
+---
+
+## Wallet Exchange Identifier Table — Inside show_widget #1 (Wallet Only)
+
+> Renders **inside show_widget #1**, directly **below the metric cards row** and **before** the 4 High-Risk Exposure Tables. Never output as standalone text — embed it in the show_widget #1 payload. Applies to **both** standalone and counterparty wallet reports.
+
+**Data source:** `walletCheck.data.extra.exchangeName`
+
+**Flag rule (fail-safe):**
+- `exchangeName` non-null AND non-empty after trim → **flag = true**
+- `null`, empty string, missing field, or missing `data.extra` → **flag = false**
+
+**Rendering — localized, follow the report language:**
+
+| Element | English | 中文 |
+|---|---|---|
+| Title | Wallet Exchange Identifier | 钱包交易所标识 |
+| Row 1 label | Is Flagged Exchange Wallet | 是否交易所钱包 |
+| Row 1 value | Yes / No | 是 / 否 |
+| Row 2 label | Exchange | 交易所 |
+| Row 2 value | exchange name (bold) / — | 交易所名（粗体）/ — |
+
+Both rows are always present:
+- Row 1 value: `Yes` / `是` when flag is true; `No` / `否` when false.
+- Row 2 value: the `exchangeName` in **bold** when flag is true; `—` when false.
+- Boolean values stay plain text — no color or icon.
+
+**HTML template — `{...}` localized to the report language:**
+
+```html
+<!-- Wallet Exchange Identifier — directly below the metric cards row, before the High-Risk Exposure Tables -->
+<div style="margin-bottom:24px">
+  <div style="font-size:14px; font-weight:600; margin-bottom:8px">{Wallet Exchange Identifier}</div>
+  <table style="width:100%; border-collapse:collapse; font-size:13px">
+    <tbody>
+      <tr>
+        <td style="padding:7px 10px; border:1px solid #ddd; background:#f7f7f7; width:50%">{Is Flagged Exchange Wallet}</td>
+        <td style="padding:7px 10px; border:1px solid #ddd">{Yes | No}</td>
+      </tr>
+      <tr>
+        <td style="padding:7px 10px; border:1px solid #ddd; background:#f7f7f7">{Exchange}</td>
+        <td style="padding:7px 10px; border:1px solid #ddd">{<strong>exchangeName</strong> | —}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+```
 
 ---
 
