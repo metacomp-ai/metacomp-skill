@@ -1,6 +1,6 @@
 ---
 name: MetaComp
-version: 1.15.9
+version: 1.15.10
 description: >
   MetaComp + VisionX — one skill for all MetaComp account and Web3-security
   actions over the metacomp-mcp connector; routes to the matching scenario. Use it
@@ -17,6 +17,12 @@ description: >
 metadata:
   mcpServers:
     - metacomp-mcp
+---
+
+# ⛔ STOP — RUN STEP ZERO BEFORE CALLING ANY TOOL
+
+The `metacomp-mcp` tools are in your tool list, but you may **NOT** call any of them yet. This skill is a **router**, not a tool wrapper: on every turn you MUST first (1) classify the intent, (2) read that branch's files, (3) emit the `Routing → {scenario}. Files read: …` line as your first visible output — all per **STEP ZERO** below. Calling any tool, or answering the user, before that `Routing →` line has appeared **in this turn** is a **hard error**, no matter how obvious the request looks. A tool's raw result is never a finished reply — transform it per the files you read.
+
 ---
 
 # CRITICAL OUTPUT CONTRACT — READ FIRST
