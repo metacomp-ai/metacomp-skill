@@ -76,9 +76,11 @@ address matches none of the known patterns below.
       No preface, no heading, no blockquote. Go straight to Step ②.
 
 ② **show_widget #1** — `read_me(["chart"])` first, then widget:
-   section header (colored title + divider) + metric cards + wallet exchange identifier table + 4 High Risk Exposure Tables + 2 donut chart panels
+   section header (colored title + divider) + metric cards + 4 High Risk Exposure Tables + 2 donut chart panels
    (see `visualization.md` for layout; `chart-spec.md` for donut panel logic)
    ⚠ The first chart call of a session cold-starts — if `read_me(["chart"])` or a `show_widget` errors/returns empty, **retry that call once** before falling back. Never degrade charts to text tables or say the tool is "unresponsive" after a single failure (see `visualization.md` → Widget Render Reliability).
+
+②.5 **Exchange Wallet Identifier** — conditional native-Markdown table rendered **after** show_widget #1 and **before** Step ③. Render **only** when `walletCheck.data.extra.exchangeName` is non-null and non-empty (omit entirely otherwise). Never inside show_widget. (see `wallet-report.md` → Exchange Wallet Identifier)
 
 ③ **Wallet Security Report** — 4 sub-sections (see `wallet-report.md` Step ③):
    Basic Info / Transaction Timeline / Risk Exposure Breakdown / High Risk Categories
@@ -108,7 +110,7 @@ address matches none of the known patterns below.
 ```
 ☐ Analysis Preface output? [skip if counterparty]
 ☐ show_widget #1: metric cards + 4 Exposure Tables + donut panels (skip panel if both source arrays empty)?
-☐ show_widget #1: wallet exchange identifier table present (below metric cards, from walletCheck.data.extra.exchangeName)?
+☐ Exchange Wallet Identifier: native-Markdown table after show_widget #1 — present ONLY when exchangeName non-empty, omitted entirely otherwise (from walletCheck.data.extra.exchangeName)?
 ☐ Wallet Security Report — all 5 sub-sections:
      Basic Info table?
      Transaction Timeline table + activity comment?
