@@ -36,6 +36,44 @@ Tone guidance:
 
 ---
 
+## Exchange Wallet Identifier (conditional)
+
+> Render as a **native Markdown table**, **after `show_widget #1` (Step ②) and before Step ③ (Wallet Security Report)**. **Never** emit this inside `show_widget` — it is plain Markdown so Claude renders it natively and theme-adaptively. Applies to **both** standalone and counterparty wallet reports.
+
+**Data source:** `walletCheck.data.extra.exchangeName`
+
+**Flag rule (fail-safe):**
+- `exchangeName` non-null AND non-empty after trim → **has exchange = true**
+- `null`, empty string, missing field, or missing `data.extra` → **has exchange = false**
+
+**Render rule:**
+- `has exchange = false` → render **nothing**: no table, no heading, no `—` placeholder.
+- `has exchange = true` → render the table below, localized to the report language. The badge is the 🟢 emoji (renders natively, matching the `🟢 Low` risk-level convention in Basic Info).
+
+**English report:**
+
+```markdown
+### Exchange Wallet Identifier
+
+| Field | Detail |
+|---|---|
+| Exchange Wallet | 🟢 Identified |
+| Exchange | **{exchangeName}** |
+```
+
+**中文报告:**
+
+```markdown
+### 钱包交易所标识
+
+| 项目 | 详情 |
+|---|---|
+| 交易所钱包 | 🟢 已识别 |
+| 交易所 | **{交易所名}** |
+```
+
+---
+
 ## Step ③: Wallet Security Report (5 sub-sections — all required)
 
 ⛔ **USD amount formatting (applies to every USD amount in this section — Wallet Balance, Total Incoming, Total Outgoing):** render the **full** number with thousands separators and two decimals, e.g. `$1,550,000.00 USD`. **Never** abbreviate to K / M / B (no `$1.55M`).
