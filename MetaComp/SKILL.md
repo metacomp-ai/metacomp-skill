@@ -1,19 +1,19 @@
 ---
 name: MetaComp
-version: 1.16.0
+version: 1.16.1
 description: >
   MetaComp + VisionX — one skill for all MetaComp account and Web3-security
-  actions over the metacomp-mcp connector; routes to the matching scenario. Use it
-  whenever the user wants to: DEPOSIT / receive funds (deposit, 充值, 入金, 收款, 收钱);
+  actions; routes to the matching scenario. Use it whenever the user wants to:
+  DEPOSIT / receive funds (deposit, 充值, 入金, 收款, 收钱);
   WITHDRAW / cash out (withdraw, cash out, 提现, 出金, 转出, 取钱, withdrawal history, 出金记录);
   SWAP / exchange currency (swap, exchange, convert, 换汇, 换钱, "100k USDT to SGD", swap history, 换汇记录);
   GET A RATE / PRICE (汇率, 查汇率, 报价, 价格, "price X to Y", "X to Y rate", "how much is X in Y", "X 值多少 Y");
   WEALTH / FIP (wealth, fixed income, subscribe, 理财, 买理财, 认购, FIP 申购);
   VIEW BALANCE / ASSETS (check balance, view assets, account overview, 查余额, 查看资产, 账户概览);
-  or WEB3 SECURITY via VisionX (a wallet address 0x…/Bitcoin/Tron, a transaction hash,
-  or any Web3 security / risk / scam / suspicious-activity question). Trigger even when
-  the user doesn't say "MetaComp", as long as the intent is one of these; when unsure,
-  load it and let the router (STEP ZERO) disambiguate.
+  or WEB3 SECURITY via VisionX — check / scan / verify a wallet address or
+  transaction hash (check address, 查地址, 地址安全; addresses look like 0x…, T… Tron,
+  bc1…/1…/3… Bitcoin), or any Web3 risk / scam / suspicious-activity question.
+  Trigger even without the word "MetaComp"; when unsure, load it and let STEP ZERO disambiguate.
 metadata:
   mcpServers:
     - metacomp-mcp
