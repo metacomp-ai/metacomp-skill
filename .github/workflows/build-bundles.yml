@@ -40,7 +40,7 @@ jobs:
           {
             echo "## Built zips"
             echo
-            for f in dist/*/MetaComp-*.zip; do
+            for f in dist/*/*.zip; do
               echo "### \`$(basename "$f")\`"
               echo
               echo '```'
@@ -54,7 +54,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: skill-bundles
-          path: dist/*/MetaComp-*.zip
+          path: dist/*/*.zip
           if-no-files-found: error
           retention-days: 30
 
@@ -64,6 +64,6 @@ jobs:
           token: ${{ github.token }}
           tag_name: ${{ steps.version.outputs.tag }}
           name: ${{ steps.version.outputs.tag }}
-          files: dist/*/MetaComp-*.zip
+          files: dist/*/*.zip
           generate_release_notes: true
           fail_on_unmatched_files: true
