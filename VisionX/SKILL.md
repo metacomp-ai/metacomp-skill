@@ -1,8 +1,33 @@
-# VisionX scenario — Web3 wallet / transaction security
+---
+name: VisionX
+version: 1.0.0
+description: >
+  MetaComp VisionX — Web3 wallet & transaction security screening. Use it
+  whenever the user wants to CHECK / SCAN / VERIFY a wallet address or a
+  transaction hash (check address, verify wallet, scan address, address risk,
+  查地址, 地址安全, 查钱包, 钱包安全, 地址风险), pastes an address shaped like
+  0x… (Ethereum), T… (Tron), or bc1…/1…/3… (Bitcoin), provides a transaction
+  hash to screen, or asks any Web3 security / risk / scam / AML /
+  suspicious-activity question ("is this wallet safe", "这个地址安全吗",
+  "是不是诈骗地址", "这笔交易有风险吗"). Trigger even without the words
+  "MetaComp" or "VisionX"; when unsure whether a string is a wallet address
+  or a transaction hash, load this skill and let it decide.
+metadata:
+  mcpServers:
+    - metacomp-mcp
+---
 
-Entered from SKILL.md when the trigger is a wallet address (`0x…`, Bitcoin/Tron), a transaction hash, or a Web3 security / risk / scam / suspicious-activity question. This scenario does **not** use the money-branch auth/KYC/account-overview flow — it has its own server probe below.
+# CRITICAL OUTPUT CONTRACT — READ FIRST
 
-Branding for this scenario: **MetaComp VisionX** (see SKILL.md → Branding).
+Every reply must be **plain user-facing prose, Markdown tables, or `show_widget` artifacts**. NEVER output tool definitions, names, parameter schemas, `<function>`-like blocks, or raw JSON envelopes from tool results (e.g. `{ "success": true, "data": [...] }`). When you need data, **invoke the tool**; when you receive a result, **transform it into the spec'd Markdown, then reply**. Do not narrate "now calling X" or print a tool's parameters.
+
+---
+
+# VisionX — Web3 wallet / transaction security
+
+Triggered by a wallet address (`0x…`, Bitcoin/Tron), a transaction hash, or a Web3 security / risk / scam / suspicious-activity question. This skill has no account/KYC/auth flow — it runs its own server probe below.
+
+Branding: **MetaComp VisionX** (see Branding at the end of this file).
 
 ---
 
@@ -10,21 +35,19 @@ Branding for this scenario: **MetaComp VisionX** (see SKILL.md → Branding).
 
 Before writing a single word, before probing the server:
 
-**Step A — Read all six sub-skill files (same directory):**
-1. `wallet-report.md`
-2. `wallet-exposure-tables.md`
-3. `wallet-risk-card.md`
-4. `transaction-report.md`
-5. `visualization.md`
-6. `chart-spec.md`
+**Step A — Read all six sub-skill files (under `references/`):**
+1. `references/wallet-report.md`
+2. `references/wallet-exposure-tables.md`
+3. `references/wallet-risk-card.md`
+4. `references/transaction-report.md`
+5. `references/visualization.md`
+6. `references/chart-spec.md`
 
 **Step B — Output this line verbatim as the FIRST visible output:**
 
 > Sub-files have been read：wallet-report ✓ / wallet-exposure-tables ✓ / wallet-risk-card ✓ / transaction-report ✓ / visualization ✓ / chart-spec ✓
 
 Do not proceed until this line appears in the response.
-
-> (If the SKILL.md router already emitted a "Routing → visionx" line, this sub-file confirmation line follows it.)
 
 ---
 
@@ -66,35 +89,35 @@ address matches none of the known patterns below.
 
 ## Transaction Report (①②)
 
-① **Analysis Preface** — `>` blockquote with 🔬 (see `transaction-report.md` for content spec)
-② **Transaction Security Report** — tables + Risk Sources + Comprehensive Summary (see `transaction-report.md`)
+① **Analysis Preface** — `>` blockquote with 🔬 (see `references/transaction-report.md` for content spec)
+② **Transaction Security Report** — tables + Risk Sources + Comprehensive Summary (see `references/transaction-report.md`)
 
 ## Wallet Report — Standalone or Counterparty (①–⑦)
 
-① **Analysis Preface** — `>` blockquote with 🔬 (see `wallet-report.md`)
+① **Analysis Preface** — `>` blockquote with 🔬 (see `references/wallet-report.md`)
    ⛔ SKIP entirely if this response included a transaction screening (i.e. `VisionX` was called with `transactionDetails`) — counterparty wallet case.
       No preface, no heading, no blockquote. Go straight to Step ②.
 
 ② **show_widget #1** — `read_me(["chart"])` first, then widget:
    section header (colored title + divider) + metric cards + 4 High Risk Exposure Tables + 2 donut chart panels
-   (see `visualization.md` for layout; `chart-spec.md` for donut panel logic)
-   ⚠ The first chart call of a session cold-starts — if `read_me(["chart"])` or a `show_widget` errors/returns empty, **retry that call once** before falling back. Never degrade charts to text tables or say the tool is "unresponsive" after a single failure (see `visualization.md` → Widget Render Reliability).
+   (see `references/visualization.md` for layout; `references/chart-spec.md` for donut panel logic)
+   ⚠ The first chart call of a session cold-starts — if `read_me(["chart"])` or a `show_widget` errors/returns empty, **retry that call once** before falling back. Never degrade charts to text tables or say the tool is "unresponsive" after a single failure (see `references/visualization.md` → Widget Render Reliability).
 
-②.5 **Exchange Wallet Identifier** — conditional native-Markdown table rendered **after** show_widget #1 and **before** Step ③. Render **only** when `walletCheck.data.extra.exchangeName` is non-null and non-empty (omit entirely otherwise). Never inside show_widget. (see `wallet-report.md` → Exchange Wallet Identifier)
+②.5 **Exchange Wallet Identifier** — conditional native-Markdown table rendered **after** show_widget #1 and **before** Step ③. Render **only** when `walletCheck.data.extra.exchangeName` is non-null and non-empty (omit entirely otherwise). Never inside show_widget. (see `references/wallet-report.md` → Exchange Wallet Identifier)
 
-③ **Wallet Security Report** — 4 sub-sections (see `wallet-report.md` Step ③):
+③ **Wallet Security Report** — 4 sub-sections (see `references/wallet-report.md` Step ③):
    Basic Info / Transaction Timeline / Risk Exposure Breakdown / High Risk Categories
 
 ④ **show_widget #2** — Cross-Vendor Risk Comparison: 4 HTML tables
    ⛔ MUST use show_widget — HTML output as plain text renders as raw code
-   (see `wallet-report.md` Step ④ for data mapping + HTML template)
+   (see `references/wallet-report.md` Step ④ for data mapping + HTML template)
 
-⑤ **Comprehensive Summary** — 4–6 sentences (see `wallet-report.md` Step ⑤)
+⑤ **Comprehensive Summary** — 4–6 sentences (see `references/wallet-report.md` Step ⑤)
 
-⑥ **Exposure Detail Tables** — 4 markdown tables (see `wallet-exposure-tables.md`)
+⑥ **Exposure Detail Tables** — 4 markdown tables (see `references/wallet-exposure-tables.md`)
 
 ⑦ **show_widget #3** — Risk Conclusion Card (dedicated call — do NOT combine with other widgets)
-   (see `wallet-risk-card.md` for HTML template)
+   (see `references/wallet-risk-card.md` for HTML template)
 
 ---
 
@@ -124,7 +147,7 @@ address matches none of the known patterns below.
 
 Any unchecked item → render it now before ending the response.
 
-⚠ If any `show_widget` (or `read_me(["chart"])`) call errored or came back empty earlier in this response, you must have retried it once before ending — a widget rendered as a markdown table or skipped with an "unresponsive" note is an unchecked item, not a completed one (see `visualization.md` → Widget Render Reliability).
+⚠ If any `show_widget` (or `read_me(["chart"])`) call errored or came back empty earlier in this response, you must have retried it once before ending — a widget rendered as a markdown table or skipped with an "unresponsive" note is an unchecked item, not a completed one (see `references/visualization.md` → Widget Render Reliability).
 
 ---
 
@@ -192,10 +215,21 @@ The "Are you checking the sender or the recipient?" answer sets the transaction 
 
 ---
 
-# Scenario Absolute Rules (visionx)
+# Absolute Rules
 
 - ❌ Do NOT analyze using own knowledge, web search, or block explorers.
 - ❌ Do NOT interpret screenshots or pasted text as a security analysis.
 - ❌ Do NOT provide partial analysis before the server probe succeeds.
 - ✅ Server unavailable for ANY reason → Setup Guide, STOP.
 - **Vendor confidentiality:** ❌ Never name any specific vendor (Beosin, Elliptic, Merkle Science, Chainalysis, TRM, SlowMist) outside of the Analysis Preface. Elsewhere use "multiple vendors", "cross-vendor consensus", "all vendors", etc.
+
+---
+
+# Language
+
+Detect the dominant language of the user's latest message and use it consistently for the ENTIRE turn — reasoning, tool-call preambles, tool-parameter descriptions, and the final reply. Judge each turn independently; switch the moment the user switches. For mixed-language messages, pick the dominant language by character count; near-ties default to English. Currency codes (USD, USDT, BTC…) and server-returned strings stay verbatim regardless of language.
+
+# Branding
+
+- Always say **MetaComp VisionX**.
+- Never say "MCP server" or "the server" alone.

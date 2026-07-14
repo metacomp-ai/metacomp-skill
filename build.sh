@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 #
-# Build the MetaComp skill zip for a target environment.
+# Build the skill zips (MetaComp + VisionX, per the SKILLS array below) for a
+# target environment.
 #
 # Usage:
 #   ./build.sh <dev|demo|uat|prod|sandbox>
 #
-# Copies the MetaComp skill into build/<env>/, rewrites every metacomp.ai
-# subdomain and the camp.mce.sg business-operations portal host to the target
-# environment, then writes dist/<env>/MetaComp-<env>-<version>.zip.
+# For each skill in SKILLS, copies it into build/<env>/<skill>/, rewrites every
+# metacomp.ai subdomain and the camp.mce.sg business-operations portal host to
+# the target environment, then writes dist/<env>/<Skill>-<env>.zip.
 #
 # Host mapping:
 #   dev -> dev.metacomp.ai      demo -> demo.metacomp.ai   uat -> uat.metacomp.ai
@@ -41,15 +42,13 @@ case "$ENV_NAME" in
 esac
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SKILL="MetaComp"
-SRC="$ROOT_DIR/$SKILL"
 BUILD_DIR="$ROOT_DIR/build/$ENV_NAME"
 DIST_DIR="$ROOT_DIR/dist/$ENV_NAME"
 
-[[ -d "$SRC" ]] || { echo "Error: source not found: $SRC" >&2; exit 1; }
-
-VERSION="$(awk '/^version:/ { gsub(/[",]/,"",$2); print $2; exit }' "$SRC/SKILL.md")"
-[[ -n "$VERSION" ]] || { echo "Error: no version found in $SRC/SKILL.md" >&2; exit 1; }
+SKILLS=(
+  "MetaComp"
+  "VisionX"
+)
 
 have_zip() { command -v zip >/dev/null 2>&1; }
 
@@ -89,19 +88,28 @@ rewrite_urls() {
         -e "s|camp\.mce\.sg|${CAMP_HOST}|g"
 }
 
-echo "==> env=$ENV_NAME  host=$TARGET_HOST  camp=$CAMP_HOST  version=$VERSION"
+echo "==> env=$ENV_NAME  host=$TARGET_HOST  camp=$CAMP_HOST"
 rm -rf "$BUILD_DIR" "$DIST_DIR"
 mkdir -p "$BUILD_DIR" "$DIST_DIR"
 
-staging="$BUILD_DIR/$SKILL"
-mkdir -p "$staging"
-cp -R "$SRC/." "$staging/"
+for SKILL in "${SKILLS[@]}"; do
+  echo "==> $SKILL"
+  SRC="$ROOT_DIR/$SKILL"
+  [[ -d "$SRC" ]] || { echo "  ! source not found: $SRC" >&2; exit 1; }
 
-# Strip macOS metadata before zipping.
-find "$staging" \( -name '.DS_Store' -o -name '__MACOSX' \) -exec rm -rf {} + 2>/dev/null || true
+  staging="$BUILD_DIR/$SKILL"
+  mkdir -p "$staging"
+  cp -R "$SRC/." "$staging/"
 
-rewrite_urls "$staging"
+  # Strip macOS metadata before zipping.
+  find "$staging" \( -name '.DS_Store' -o -name '__MACOSX' \) -exec rm -rf {} + 2>/dev/null || true
 
-out="$DIST_DIR/${SKILL}-${ENV_NAME}-${VERSION}.zip"
-make_zip "$staging" "$out"
-echo "  -> $out"
+  rewrite_urls "$staging"
+
+  out="$DIST_DIR/${SKILL}-${ENV_NAME}.zip"
+  make_zip "$staging" "$out"
+  echo "  -> $out"
+done
+
+echo
+echo "Done. Output: $DIST_DIR"

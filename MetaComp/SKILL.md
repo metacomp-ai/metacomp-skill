@@ -1,18 +1,15 @@
 ---
 name: MetaComp
-version: 1.16.1
+version: 2.0.0
 description: >
-  MetaComp + VisionX — one skill for all MetaComp account and Web3-security
-  actions; routes to the matching scenario. Use it whenever the user wants to:
+  MetaComp — one skill for all MetaComp account actions; routes to the
+  matching scenario. Use it whenever the user wants to:
   DEPOSIT / receive funds (deposit, 充值, 入金, 收款, 收钱);
   WITHDRAW / cash out (withdraw, cash out, 提现, 出金, 转出, 取钱, withdrawal history, 出金记录);
   SWAP / exchange currency (swap, exchange, convert, 换汇, 换钱, "100k USDT to SGD", swap history, 换汇记录);
   GET A RATE / PRICE (汇率, 查汇率, 报价, 价格, "price X to Y", "X to Y rate", "how much is X in Y", "X 值多少 Y");
   WEALTH / FIP (wealth, fixed income, subscribe, 理财, 买理财, 认购, FIP 申购);
-  VIEW BALANCE / ASSETS (check balance, view assets, account overview, 查余额, 查看资产, 账户概览);
-  or WEB3 SECURITY via VisionX — check / scan / verify a wallet address or
-  transaction hash (check address, 查地址, 地址安全; addresses look like 0x…, T… Tron,
-  bc1…/1…/3… Bitcoin), or any Web3 risk / scam / suspicious-activity question.
+  VIEW BALANCE / ASSETS (check balance, view assets, account overview, 查余额, 查看资产, 账户概览).
   Trigger even without the word "MetaComp"; when unsure, load it and let STEP ZERO disambiguate.
 metadata:
   mcpServers:
@@ -27,7 +24,7 @@ The `metacomp-mcp` tools are in your tool list, but you may **NOT** call any of 
 
 # CRITICAL OUTPUT CONTRACT — READ FIRST
 
-Every reply must be **plain user-facing prose, Markdown tables, or (VisionX only) `show_widget` artifacts**. NEVER output tool definitions, names, parameter schemas, `<function>`-like blocks, or raw JSON envelopes from tool results (e.g. `{ "success": true, "data": [...] }`). When you need data, **invoke the tool**; when you receive a result, **transform it into the spec'd Markdown, then reply**. Do not narrate "now calling X" or print a tool's parameters.
+Every reply must be **plain user-facing prose or Markdown tables**. NEVER output tool definitions, names, parameter schemas, `<function>`-like blocks, or raw JSON envelopes from tool results (e.g. `{ "success": true, "data": [...] }`). When you need data, **invoke the tool**; when you receive a result, **transform it into the spec'd Markdown, then reply**. Do not narrate "now calling X" or print a tool's parameters.
 
 ---
 
@@ -41,7 +38,6 @@ This skill is a **router**. Before calling any MCP tool, before writing a single
 
 | Intent signal (from the user's triggering message) | Scenario |
 |---|---|
-| A wallet address (`0x…`, a Bitcoin/Tron address), a transaction hash, or Web3 security / risk / scam / suspicious-activity question | **visionx** |
 | deposit / receive / collect / 充值 / 入金 / 收款 / 收钱 | **deposit** (redirect → web portal; no in-skill flow) |
 | withdraw / cash out / 提现 / 出金 / 转出 / 取钱, or "withdrawal history / status / 出金记录" | **withdraw** |
 | swap / exchange / convert / 换汇 / 换钱 / "X to Y" | **swap** |
@@ -57,7 +53,6 @@ Ambiguity rules:
 - **swap vs swap-history:** a request to *exchange now* (a quote/conversion intent, "X to Y", "换 100k USDT") → **swap**. A request about *past* exchanges (history / records / "did my swap settle" / "换汇记录") → **swap-history** (read-only list). When both senses are present, prefer **swap-history** only if the user is clearly asking to review, not to transact.
 - **rate vs swap:** a bare price / rate / valuation query (price / rate / 汇率 / 值多少 / 报价 — **even with an amount**, but with NO transactional verb) → **rate** (read-only). A transactional verb (swap / exchange / convert / 换 / 兑换 / cash out) → **swap**. When both a rate word and a transactional verb appear, prefer **swap**. Like swap-history, **rate** is a read-only branch (no auth / overview / Wealth Gate).
 - If it matches **two** money scenarios (rare), prefer the one with the more specific verb (e.g. "swap then withdraw" → start with **swap**).
-- A Web3 address / tx-hash signal **always** routes to **visionx**, never to a money scenario.
 
 ## Step B — Read the files for the matched branch
 
@@ -81,8 +76,6 @@ Ambiguity rules:
 
 **Rate branch** (intent = rate) — read ONLY `references/swap/rate.md` and follow it. This is a lightweight read-only view: do NOT read `auth-kyc-setup.md` / `account-overview.md` / `wealth-recommendation.md`, do NOT render the Account Overview, do NOT fetch currency pairs, and do NOT evaluate the Wealth Gate. Session validity is enforced by the Token Guard on the `get_exchange_quote` call.
 
-**VisionX branch** — read `references/visionx/visionx.md` and follow its STEP ZERO (it lists its own sub-files).
-
 > Each scenario entry file points to the leaf flow files it needs (e.g. `withdraw.md` → `fiat-withdrawal.md` / `crypto-withdrawal.md`). Read those **on demand** when the flow reaches them — do NOT pre-read every leaf file. That on-demand loading is the whole point of this structure.
 
 ## Step C — Output the confirmation line verbatim as your FIRST visible output
@@ -94,7 +87,6 @@ Do not proceed until this line appears. Then enter the scenario:
 - **Accounts branch** → go straight to the **Account Roster (read-only)** section of `references/withdraw/withdraw.md` (no auth-kyc-setup, no overview).
 - **Swap-history branch** → go straight to STEP 1 in `references/swap/swap-history.md` (no auth-kyc-setup, no overview).
 - **Rate branch** → go straight to STEP 1 in `references/swap/rate.md` (no auth-kyc-setup, no overview).
-- **VisionX branch** → follow `references/visionx/visionx.md`.
 
 ---
 
@@ -109,7 +101,7 @@ Deposits are not yet supported here. Please complete your deposit on the MetaCom
 
 **[MetaComp](https://camp.mce.sg/)**
 
-I can still help you here with **withdrawals**, **currency exchange (swap)**, **wealth products**, and **Web3 security checks** — just let me know.
+I can still help you here with **withdrawals**, **currency exchange (swap)**, and **wealth products** — just let me know.
 ```
 
 ### Chinese
@@ -119,7 +111,7 @@ I can still help you here with **withdrawals**, **currency exchange (swap)**, **
 
 **[MetaComp](https://camp.mce.sg/)**
 
-我仍可在这里帮您处理**提现**、**换汇**、**理财产品**以及 **Web3 安全检测**——告诉我即可。
+我仍可在这里帮您处理**提现**、**换汇**以及**理财产品**——告诉我即可。
 ```
 
 Rules:
@@ -257,7 +249,7 @@ The Token Guard still takes priority: a fetch returning `success:false` + `authP
 
 ## Wealth Evaluation Gate — Mandatory Pre-Closing Check (money branch, non-wealth scenarios)
 
-Applies whenever an Account Overview has been rendered in this response AND the current scenario is **withdraw / swap** (NOT deposit, NOT wealth, NOT visionx). Deposit is redirected to the web portal and never renders an overview, so this gate does not apply to it.
+Applies whenever an Account Overview has been rendered in this response AND the current scenario is **withdraw / swap** (NOT deposit, NOT wealth). Deposit is redirected to the web portal and never renders an overview, so this gate does not apply to it.
 
 Before you output any closing / hand-off message (View-Only closing, the swap STEP 3C re-ask, etc.), you MUST have:
 
@@ -279,7 +271,6 @@ Detect the dominant language of the user's latest message and use it consistentl
 ## Branding
 
 - Money scenarios (deposit / withdraw / swap / wealth) → always say **MetaComp**.
-- VisionX scenario → always say **MetaComp VisionX**.
 - Never say "MCP server" or "the server" alone.
 
 ## Destination Source of Truth — addresses ALWAYS come from the system
@@ -382,6 +373,5 @@ on a transaction the account could never fund.
 | swap-history | `references/swap/swap-history.md` | Read-only list of past OTC swaps (newest first) |
 | rate | `references/swap/rate.md` | Read-only indicative exchange rate (no quote lock, no transaction) |
 | wealth | `references/wealth/wealth.md` | FIP subscription (precheck → catalog → agreement → subscribe) |
-| visionx | `references/visionx/visionx.md` | Web3 wallet / transaction security report |
 
 Shared (money branch only): `references/shared/{auth-kyc-setup,account-overview,wealth-recommendation}.md`.

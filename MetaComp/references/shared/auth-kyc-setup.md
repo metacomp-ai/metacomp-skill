@@ -2,8 +2,6 @@
 
 Shared by the **deposit**, **withdraw**, **swap**, **wealth** scenarios. This is the common STEP 1 prelude: probe the session with `get_account_summary`, branch on the response, and (on success) render the Account Overview from `./account-overview.md`.
 
-> The **visionx** scenario does NOT use this file — it has no account/KYC/auth flow and runs its own server probe. See `../visionx/visionx.md`.
-
 ---
 
 ## STEP 1 — Probe & Authenticate
