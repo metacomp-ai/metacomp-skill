@@ -1,181 +1,222 @@
-# Visualization — Rendering Specifications
+# Visualization — Dashboard Widget Specification
 
 ---
 
-## Enforcement Rules
+## Scope: this file covers the dashboard ONLY
 
-- ❌ Do NOT finish a wallet report response without calling `show_widget` (transaction reports have no widget)
-- ✅ Always call `read_me(["chart"])` before the first `show_widget` in each wallet response
-- ✅ Every new wallet MCP result requires its own fresh visualization
+The **Wallet Security Dashboard (Step ②)** is the report's only widget surface. It is rendered as
+**three `show_widget` calls**, back to back, with no text between them:
 
-## Widget Render Reliability — retry the first call, never improvise a text fallback
-
-The chart runtime cold-starts on the **first** chart call of a fresh MCP session: `read_me(["chart"])` or the first `show_widget` sometimes returns an error or an empty/failed result the first time, then succeeds on a second attempt. (This is the "first conversation shows tables, second conversation shows the charts" symptom — the second conversation just hit a warm runtime.) A same-turn retry is how you get that "second time" without making the user re-ask.
-
-So, when a chart call doesn't succeed, **retry before doing anything else** — do not abandon the widget after one hiccup:
-
-- `read_me(["chart"])` errors or returns empty → **retry it once** before the first `show_widget`. Do not call `show_widget` until `read_me(["chart"])` has returned successfully.
-- A `show_widget` call returns an error or an empty/failed result → **retry that same `show_widget` call once** before moving on. The first widget call in a session is the usual culprit; a single retry almost always renders.
-
-What you must NOT do, because it produces exactly the broken first-conversation output:
-
-- ❌ Do NOT silently degrade the charts to markdown/plain-text tables after a single failed call. The `show_widget` chart **is** the required deliverable, not an optional enhancement.
-- ❌ Do NOT tell the user the visualization tool is "unresponsive" / "unavailable" or emit a "presenting data in table form below" substitute. That sentence is never correct here — retry instead.
-- Only if a chart call **fails again after the retry** do you add one brief line ("the chart didn't render this time — here is the data") and continue with the remaining report sections. One retry first, always.
-
-## Chart Fallback Rule
-
-- Empty array → gray placeholder slice/bar labeled "No data" (transaction charts)
-- Null field → zero baseline
-- Donut panels: skip only when **both** source arrays for that direction are empty (see `chart-spec.md`)
-
----
-
-## Widget Layout Rules
-
-### ❌ Never do these
-- ❌ No `<iframe>` — widget must be inline HTML
-- ❌ No fixed height on outer container — no `height:`, `max-height:`, `overflow:scroll/auto`
-- ❌ No scroll container on the outer widget container — no `overflow:scroll/auto` with fixed height
-- ✅ Inner sections MAY use `display:flex` for side-by-side elements (e.g. chart + legend within one panel)
-- ❌ Do NOT use multi-column grid for donut chart panels — full-width single column only (see `chart-spec.md`)
-- ❌ Do NOT output High Risk Categories HTML as standalone text — embed in `show_widget` payload
-
-### ✅ Correct outer structure
-```html
-<div style="width:100%; font-family:sans-serif">
-  <!-- metric cards row -->
-  <!-- high risk exposure tables (wallet only) -->
-  <!-- chart sections -->
-</div>
-```
-
-### Wallet widget structure
-
-show_widget #1 for wallet reports MUST start with this section header — place it before metric cards:
-
-```html
-<!-- Section header — always the first element inside the outer div -->
-<div style="border-top:4px solid #1d4ed8; padding-top:16px; margin-bottom:20px">
-  <div style="font-size:20px; font-weight:700; color:#1d4ed8; letter-spacing:0.01em">
-    🔐 Wallet Security Report
-  </div>
-  <div style="font-size:12px; color:#888; margin-top:4px">MetaComp VisionX</div>
-  <hr style="border:none; border-top:1px solid #e5e7eb; margin-top:12px; margin-bottom:0">
-</div>
-<!-- metric cards row follows -->
-```
-
-If this is a counterparty wallet (VisionX was called with transactionDetails), change the title to:
-```html
-<div style="font-size:20px; font-weight:700; color:#b45309; letter-spacing:0.01em">
-  🔎 Counterparty Wallet Analysis
-</div>
-```
-(use amber/orange `#b45309` to visually distinguish from the transaction report above)
-
----
-
-## Chart Type Mapping
-
-| Data | Chart type | Content |
+| Call | Contents | Measured |
 |---|---|---|
-| `directIncoming[]` + `indirectIncoming[]` (wallet) | Donut | Incoming Exposure (Direct + Indirect) |
-| `directOutgoing[]` + `indirectOutgoing[]` (wallet) | Donut | Outgoing Exposure (Direct + Indirect) |
+| **D1** | 6 metric cards (two rows) + the 4 high-risk exposure tables in a 2×2 grid | ≈ 6 KB |
+| **D2** | Incoming Exposure donut + legend | ≈ 8.9 KB |
+| **D3** | Outgoing Exposure donut + legend | ≈ 8.9 KB |
 
-Donut panels skip only when both source arrays for that direction are empty (see `chart-spec.md`).
+Sizes measured on a busy wallet (36 legend entries per direction). The same content as one call
+measures ~21 KB and would break the 12 KB ceiling — hence the fixed three-way split. Always emit all
+three, even for a small wallet that would have fitted in fewer: a fixed split needs no size guessing.
 
----
+⛔ **Everything else in the report is Markdown** — preface, Wallet Security Report, Cross-Vendor tables,
+Comprehensive Summary, Exposure Detail Tables, Risk Verdict card. Do not wrap those in widgets, and do
+not hand-write HTML for them in your message text (it would show as escaped source).
 
-## Chart Styling Rules
-
-- Custom HTML legend beside each chart — never use Chart.js default legend
-- Doughnut cutout: `52%`
-- Bar border radius: `6px`, no border
-- Axes: hide border line, show subtle grid (`rgba(0,0,0,0.07)`)
-- Font ticks: `11–12px`
-- Canvas wrapper: `<div style="position:relative;width:100%;height:Xpx">` — never set height on canvas element
-
-### Doughnut — Pointer Labels
-For slices `> 5%`: draw pointer label outside using `afterDraw` hook:
-1. Compute midpoint angle → radial line (~20px) → horizontal tick (~12px) → label
-2. Font `12px`; bold if `isHighRisk=true`; color matches slice
-3. Slices ≤ 5% → legend only, no pointer
-
-### Metric Cards
-`background: var(--color-background-secondary)`, `border-radius: var(--border-radius-md)`, `padding: 1rem`, centered text
+⚠ **Language:** every human-readable string inside D1/D2/D3 HTML — card labels (`Overall Risk` →
+`综合风险`), table headers, donut titles, badges, the `(Direct)`/`(Indirect)` hop labels（直接/间接）—
+follows the turn's dominant language. Category names, the fixed nine rows included, use the display
+format from `SKILL.md` → Language: English turn `Gambling`; 中文轮次 `赌博` — localized name only,
+no English in parentheses. Only amounts, currency codes, and proper names (entity/exchange names)
+stay verbatim.
 
 ---
 
-## High-Risk Category Summary Tables — Inside show_widget #1 (Wallet Only)
+## Shared skeleton — D1 / D2 / D3 all use this shape
 
-> ⚠️ These are NOT the Exposure Detail Tables in `wallet-exposure-tables.md` (Step ⑥).
-> These go **inside show_widget #1 payload** and show only `isHighRisk=true` entries with 9 fixed rows.
-
-Render 4 HTML tables in 2×2 layout inside the show_widget #1 payload. Never as standalone text.
-
-**Layout:**
+```html
+<div>                                        <!-- plain, unstyled: the host strips
+                                                  border/background/padding/margin from the
+                                                  outermost element with !important, so nothing
+                                                  visual may live here -->
+  <style>…the class block below…</style>
+  …cards, tables and charts, all nested inside this outer div…
+</div>
 ```
-Row A: [ Incoming Direct ]   [ Incoming Indirect ]
-Row B: [ Outgoing Direct ]   [ Outgoing Indirect ]
+
+The iframe already supplies the font stack, `13px`/`1.65`, colour `#161614`, a transparent background
+and complete `table` / `th` / `td` styling. **Do not restate any of it.**
+
+**Class block — paste into each of D1 / D2 / D3, then use the classes:**
+
+```html
+<style>.n{text-align:right;font-variant-numeric:tabular-nums}
+.sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.t{font-size:11px;font-weight:600;margin:0 0 6px}
+.x th{font-size:10px;background:#3d3d3a;color:#fff}.x td,.x th{padding:5px 8px}
+.hot{color:#CC1111;font-weight:600}
+.card{flex:1 1 150px;border:1px solid #e4e2da;border-radius:10px;padding:10px 12px}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#75726a;margin-bottom:4px}
+.pie{width:160px;height:160px;border-radius:50%;flex-shrink:0;-webkit-mask:radial-gradient(circle,transparent 54%,#000 55%);mask:radial-gradient(circle,transparent 54%,#000 55%)}
+.row{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin:16px 0}
+.lg{flex:1;min-width:230px;font-size:11px}.lg td{padding:2px 6px;border:none}</style>
 ```
 
-**Rules:**
-- Fixed 9-row list in every table — show `0` for missing categories
-- Row order: Sanctions → High Risk Organisation → Theft → Malware → Scams → Extortion → Coin Mixer → Darknet → Gambling
+⛔ The classes are not optional. Repeating `style="text-align:right;font-variant-numeric:tabular-nums"`
+on every numeric cell roughly doubles the byte count and breaks the ceiling. A `<style>` element is
+exempt from the outer-element stripping, so it is safe as a direct child.
+
+---
+
+## Section header — Markdown, before D1
+
+Not part of any widget. Emit as ordinary Markdown immediately before the first `show_widget` call:
+
+```markdown
+## 🔐 Wallet Security Report
+*MetaComp VisionX*
+```
+
+Counterparty wallet (VisionX called with `transactionDetails`): `## 🔎 Counterparty Wallet Analysis`.
+
+---
+
+## D1 — metric cards
+
+Six cards in two flex rows — always all six, a zero value renders as `$0.00 (0%)`, never an omitted card.
+
+**Row 1 — four cards, in this order:**
+
+| Card (中文) | Value |
+|---|---|
+| Overall Risk（综合风险） | the mapped badge, e.g. `🔴 High` — coloured by level |
+| Wallet Balance（钱包余额） | `$walletCheck.data.extra.walletBalance` |
+| Total Incoming（总流入） | `$walletCheck.data.extra.totalIncoming` |
+| Total Outgoing（总流出） | `$walletCheck.data.extra.totalOutgoing` |
+
+**Row 2 — two high-risk cards:**
+
+| Card (中文) | Value |
+|---|---|
+| High Risk Incoming（高风险流入） | `$incomingRiskExposureBreakdown.highRiskAmount`, then the share in parentheses: `highRiskAmount ÷ totalAmount × 100` — two decimals when the amount is nonzero; a zero amount (or zero total) renders exactly `$0.00 (0%)` |
+| High Risk Outgoing（高风险流出） | same, from `outgoingRiskExposureBreakdown` |
+
+High-risk card amount colour: red `#CC1111` when the amount is > 0; default text colour when it is 0.
+
+```html
+<div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px">
+  <div class=card><div class=lbl>Overall Risk</div>
+    <div style="font-size:16px;font-weight:600"><span style="color:#E53030">🔴 High</span></div></div>
+  <div class=card><div class=lbl>Wallet Balance</div>
+    <div class=n style="font-size:16px;font-weight:600;text-align:left">$250.00</div></div>
+  …Total Incoming… …Total Outgoing…
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+  <div class=card><div class=lbl>High Risk Incoming</div>
+    <div class=n style="font-size:16px;font-weight:600;text-align:left;color:#CC1111">$516,912.01 (24.88%)</div></div>
+  <div class=card><div class=lbl>High Risk Outgoing</div>
+    <div class=n style="font-size:16px;font-weight:600;text-align:left">$0.00 (0%)</div></div>
+</div>
+```
+
+⛔ **Copy the two amounts digit by digit from their named fields.** `totalIncoming` and `totalOutgoing`
+are distinct fields — if they come out equal you copied one twice. They reappear in the Step ③
+Transaction Timeline table and must match there character for character.
+
+Level → badge colour: 🔴 High `#E53030` · 🟠 Medium-High `#FF9900` · 🟡 Medium `#C8A400` ·
+🟢 Low `#7D8B00`. Map `walletCheck.data.level` per `wallet-report.md` → Basic Info; never print the raw
+level string.
+
+---
+
+## D1 — the four High Risk Exposure tables (2×2 grid)
+
+All four appear, inside `<div class=g>` so they lay out two-up on a wide screen and stack on a narrow
+one. Fixed 9-row order in every table.
+
+**Grid order:** Incoming Direct → Incoming Indirect → Outgoing Direct → Outgoing Indirect
+
+**Fixed row order (9 rows, always all nine):**
+Sanctions → High Risk Organisation → Theft → Malware → Scams → Extortion → Coin Mixer → Darknet → Gambling
+（中文轮次，同一顺序、纯中文：制裁 → 高风险机构 → 盗窃 → 恶意软件 → 诈骗 → 勒索 → 混币器 → 暗网 → 赌博）
 
 **Data source per table:**
 
-| Table | Data array | % column header | % field |
+| Table | Title | Data array | % header |
 |---|---|---|---|
-| Incoming Direct | `walletCheck.data.extra.directIncoming` (isHighRisk=true) | High-Risk % of Total Received | `totalValueUsdRatio` |
-| Incoming Indirect | `walletCheck.data.extra.indirectIncoming` (isHighRisk=true) | High-Risk % of Total Received | `totalValueUsdRatio` |
-| Outgoing Direct | `walletCheck.data.extra.directOutgoing` (isHighRisk=true) | High-Risk % of Total Sent | `totalValueUsdRatio` |
-| Outgoing Indirect | `walletCheck.data.extra.indirectOutgoing` (isHighRisk=true) | High-Risk % of Total Sent | `totalValueUsdRatio` |
+| 1 | `Incoming` Direct Exposure to High Risk Sources | `walletCheck.data.extra.directIncoming` (isHighRisk=true) | High-Risk % of Total Received |
+| 2 | `Incoming` Indirect Exposure to High Risk Sources | `walletCheck.data.extra.indirectIncoming` (isHighRisk=true) | High-Risk % of Total Received |
+| 3 | `Outgoing` Direct Exposure to High Risk Sources | `walletCheck.data.extra.directOutgoing` (isHighRisk=true) | High-Risk % of Total Sent |
+| 4 | `Outgoing` Indirect Exposure to High Risk Sources | `walletCheck.data.extra.indirectOutgoing` (isHighRisk=true) | High-Risk % of Total Sent |
 
-**Value formatting:**
-- Amount (`totalValueUsd`) > 0: `≈ 19,653,080.62` (comma separator, no USD suffix)
-- Amount = 0 or missing: `0`
-- `totalValueUsdRatio` > 0: `1.28 %` (space before %)
-- `totalValueUsdRatio` = 0 or missing: `0`
+Canonical 中文 strings (Chinese turns use these exact words — table titles: `流入 — 直接高风险来源敞口` /
+`流入 — 间接高风险来源敞口` / `流出 — 直接高风险来源敞口` / `流出 — 间接高风险来源敞口`; headers:
+`高风险来源` / `金额 (USD)` / `高风险占总流入 %` / `高风险占总流出 %`; D2/D3 donut titles: `流入敞口` /
+`流出敞口`).
 
-**HTML template:**
+In each title, the direction word is coloured — `Incoming` green `#3f7d3f`, `Outgoing` red `#CC1111` —
+and the rest of the title stays default.
+
+⛔ **Data-source exclusivity — the four arrays above are the ONLY permitted source.**
+`walletCheck.data.extra` also carries same-named sub-objects that are **single-vendor subsets**, not
+the aggregate result. Reading one of those silently understates risk by one to two orders of magnitude
+while the verdict still reads "High", so the error is invisible unless the amounts are checked.
+
+- ❌ NEVER read `data.extra.chainalysis.*`, `data.extra.vendor1/2/3.*`,
+  `data.extra.incomingDirectExposure`, `data.extra.outgoingDirectExposure`, or anything whose path is
+  not exactly one of the four above.
+- ✅ Read only `data.extra.directIncoming` / `indirectIncoming` / `directOutgoing` / `indirectOutgoing`.
+- **Self-check:** if the Incoming-Direct and Outgoing-Direct tables came out with identical amounts on
+  every row, you read a single-vendor sub-object. Go back and rebuild both.
+
+**Row rendering:**
+- Category absent from the array, or `totalValueUsd` is 0 → amount `0`, percent `0`, default colour.
+- Category present with a nonzero amount → **the whole row is red** (`class=hot`): it is the finding the
+  reader is looking for. Amount `≈ {totalValueUsd}` with comma separators and two decimals; percent
+  `{totalValueUsdRatio} %`, or `0` when the ratio itself is 0.
+
 ```html
-<!-- Pair A: side by side -->
-<div style="display:flex; gap:16px; margin-bottom:24px">
-
-  <!-- Incoming Direct -->
-  <div style="flex:1; min-width:0">
-    <div style="margin-bottom:8px; font-size:14px; font-weight:600">
-      <span style="color:#4CAF50">Incoming</span>
-      <span style="color:#333"> Direct Exposure to High Risk Sources</span>
-    </div>
-    <table style="width:100%; border-collapse:collapse; font-size:13px">
-      <thead>
-        <tr style="background:#555; color:#fff">
-          <th style="padding:8px 10px; text-align:left">High Risk Sources</th>
-          <th style="padding:8px 10px; text-align:right">Amount (USD)</th>
-          <th style="padding:8px 10px; text-align:right">High-Risk % of Total Received</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- 9 rows, alternating #fff / #f5f5f5 -->
-        <!-- col 1: tagTypeVerbose | col 2: totalValueUsd | col 3: totalValueUsdRatio -->
-        <tr style="background:#fff">
-          <td style="padding:7px 10px">Sanctions</td>
-          <td style="padding:7px 10px; text-align:right">{totalValueUsd}</td>
-          <td style="padding:7px 10px; text-align:right">{totalValueUsdRatio}</td>
-        </tr>
-        <!-- repeat for: High Risk Organisation, Theft, Malware, Scams, Extortion, Coin Mixer, Darknet, Gambling -->
-      </tbody>
+<div class=g>
+  <div>
+    <div class=t><span style="color:#3f7d3f">Incoming</span> Direct Exposure to High Risk Sources</div>
+    <table class=x>
+      <tr><th>High Risk Sources</th><th class=n>Amount (USD)</th><th class=n>High-Risk % of Total Received</th></tr>
+      <tr><td>Sanctions</td><td class=n>0</td><td class=n>0</td></tr>
+      <tr class=hot><td>Scams</td><td class=n>≈ 115.05</td><td class=n>0.01 %</td></tr>
+      …all nine rows, fixed order…
     </table>
   </div>
-
-  <!-- Incoming Indirect — same structure, indirectIncoming data -->
-  <div style="flex:1; min-width:0">...</div>
-
+  …three more table blocks…
 </div>
-
-<!-- Pair B: Outgoing Direct + Outgoing Indirect — same structure -->
-<div style="display:flex; gap:16px; margin-bottom:24px">...</div>
 ```
+
+⛔ Never re-sort these rows by amount, never drop a zero row, and never merge categories into an
+"Other (…)" row. The fixed nine-row shape is what lets a reader compare the four tables side by side.
+
+---
+
+## D2 / D3 — the two exposure donuts
+
+One donut per direction: **D2 = Incoming Exposure, D3 = Outgoing Exposure.** Each merges that
+direction's direct and indirect arrays, keeps them distinguishable by labelling every entry with its
+hop, and **includes low-risk categories** — the olive-vs-red contrast is the point of the chart.
+
+Construction, colours and legend rules: `chart-spec.md` → Donut charts.
+
+```html
+<div class=t style="font-size:12px">Incoming Exposure</div>
+<div class=row>
+  <div class=pie style="background:conic-gradient(#7D8B00 0.00% 28.19%,#5A6200 28.19% 49.17%,…)"></div>
+  <table class=lg>
+    <tr><td><span class=sw style="background:#7D8B00"></span>Exchange (Direct)<br>
+            <span style="color:#75726a">≈ $436,285.00</span></td>
+        <td class=n style="font-weight:600">28.19%</td></tr>
+    …one row per entry…
+  </table>
+</div>
+```
+
+⛔ D2 and D3 are separate `show_widget` calls. Putting both donuts in one call reaches ~16.7 KB on a
+busy wallet and breaks the ceiling.
+
+⛔ Do **not** add a tainted-vs-clean proportion bar, and do **not** write a "composition: top1 x% ·
+top2 y%…" sentence — the donuts already carry the composition, and repeating it duplicates a surface.

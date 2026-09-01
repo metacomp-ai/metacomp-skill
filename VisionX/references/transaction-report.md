@@ -1,5 +1,12 @@
 # Transaction Report — Content Specifications
 
+⛔ **Rendering: everything in this file is Markdown** — no widget, no HTML. The wallet report's Step ②
+dashboard is the only widget surface in this skill.
+
+When a counterparty wallet report follows (VisionX called with `transactionDetails`), the whole
+transaction report comes first, then the wallet report's section header + its three dashboard widgets —
+and the wallet report skips its own preface.
+
 ---
 
 ## Step ①: Analysis Preface Content
@@ -8,7 +15,7 @@ Render as a `>` blockquote opening with 🔬. Write fresh each time in the user'
 Three separate paragraphs — do NOT merge them.
 
 ### Paragraph 1 — Data Sources
-Name all six vendors: **Chainalysis, Elliptic, TRM, Merkle Science, Beosin, and SlowMist**.
+Reference **six independent, industry-leading blockchain-security & compliance vendors** — but ❌ NEVER print any real vendor name. Refer to them only generically ("six leading vendors", "multiple independent vendors") or as **Vendor 1–Vendor 6**.
 Explain that cross-verifying across multiple vendors eliminates individual blind spots. (1–2 sentences)
 
 ### Paragraph 2 — Methodology
@@ -37,11 +44,15 @@ Connect the figure to this specific case — never cite numbers in isolation.
 
 ---
 
-## Step ③: Transaction Security Report
+## Step ③: Transaction Security Report — Markdown
+
+⚠ **Table language:** the templates below are English structural specs. In a non-English turn, translate
+every field name and label (Date/Direction/Asset… → 日期/方向/资产…), the risk badges, the
+Interpretation wording, and risk-category names (canonical table in `SKILL.md` → Language); amounts,
+hashes, addresses, and proper names stay verbatim.
 
 **If `transactionCheck.data.extra.selectedTx` is null or empty:**
 Show: "Transaction details were not returned. Overall risk level: `transactionCheck.data.level`."
-Still render the visualization widget with available fields.
 
 **For each entry in `transactionCheck.data.extra.selectedTx`:**
 
@@ -82,6 +93,10 @@ If `riskSources` empty: "✅ No risk sources identified."
 
 ## Error Handling
 
-- `transactionCheck.success === false` or `transactionCheck.code !== 0` → check failed; suggest retry or metacomp.ai support
-- 401 → API key invalid/expired; re-authenticate or apply at metacomp.ai
-- Unsupported network → only Bitcoin, Ethereum, Tron supported
+Triage the failure first — see `SKILL.md` → **Screening Call Failure — Triage**. Never default to the
+Authorization Guide.
+
+- `transactionCheck.success === false` / `code !== 0`, empty result, or timeout → **Case B**: Data
+  Unavailable notice. Do not mention keys or authorization.
+- Explicit `401` / `403` / invalid key / expired token → **Case A**: Authorization Guide.
+- Unsupported network → only Bitcoin, Ethereum, Tron supported.
