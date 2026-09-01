@@ -1,33 +1,69 @@
 # Wallet Report — Step ⑦: 🚨 Risk Conclusion Card
 
-Render a single prominent card **immediately after the visualization widget** via a dedicated `show_widget` call.
+Render a prominent risk verdict **immediately after the Exposure Detail Tables (Step ⑥)** as a native
+Markdown blockquote — the last thing in the response.
 
-- ❌ Do NOT output the card HTML as standalone text — it will render as raw code
-- ❌ Do NOT skip this step or replace it with a markdown blockquote
-- ✅ Always call `show_widget` with the card HTML — this is the only valid way to render it
-- ✅ The response is **incomplete** until `show_widget` has been called for this card
+- ✅ Output as plain Markdown — no widget, no HTML
+- ❌ Do NOT skip this step or omit the recommendation line
+- The response is **incomplete** until this blockquote appears
 
 **Content:**
-- Risk level badge: 🟢 Low / 🟡 Medium / 🟠 Medium-High / 🔴 High (bold, large)
-- 1–2 sentences: key risk verdict summarizing the most important finding
+- Risk level badge: 🟢 Low / 🟡 Medium / 🟠 Medium-High / 🔴 High — use the badge mapped in
+  `wallet-report.md` → Basic Info; never print the raw `level` string (e.g. `Severe`)
+- 1–2 sentences: key risk verdict summarizing the most important finding. **Alert-driven case:** when
+  the level is High/Medium while `highRiskAmount` is 0 and no exposure row is high-risk, the verdict
+  sentence MUST attribute the rating to the vendor alert flags (Step ④.5) — e.g. "多家厂商对该钱包
+  触发告警，评级由告警驱动，敞口金额均为低风险" — never a high verdict over all-zero exposure with
+  no stated basis
 - One clear action recommendation: freely interact / proceed with caution / avoid / report
+  — this is the **only** place the recommendation appears in the whole report (Step ⑤ must not carry one)
 
-**HTML template — pass exactly this structure to `show_widget`:**
+---
 
-```html
-<!-- 🔴 High Risk example — swap colors per level -->
-<div style="background:#fff0f0; border:1.5px solid #E53030; border-radius:12px; padding:18px 20px; margin-top:8px; font-family:sans-serif">
-  <div style="font-size:16px; font-weight:700; color:#A32D2D; margin-bottom:8px">🚨 Risk Verdict — 🔴 High Risk</div>
-  <div style="font-size:13px; color:#7a2020; margin-bottom:10px">{1–2 sentence verdict}</div>
-  <div style="font-size:13px; font-weight:600; color:#A32D2D">⚡ Recommendation: {action}</div>
-</div>
+⚠ **Language:** in a non-English turn, localize the ENTIRE card — the `Risk Verdict` heading, the badge
+word, the verdict sentences, the `Recommendation` label, and the recommended action itself
+(中文: `> ### 🚨 风险结论 — 🔴 高风险` … `⚡ **操作建议：** 避免交易 — …`). The English examples below are
+models to translate, never verbatim strings (see `SKILL.md` → Language).
+
+## Markdown Template
+
+```markdown
+---
+
+> ### 🚨 Risk Verdict — {risk emoji} {Risk Level}
+> {1–2 sentence verdict summarizing the key finding.}
+>
+> ⚡ **Recommendation:** {freely interact / proceed with caution / avoid / report to compliance}
 ```
 
-**Color mapping by risk level:**
+**Examples by risk level:**
 
-| Level | Background | Border | Text color |
-|---|---|---|---|
-| 🔴 High | `#fff0f0` | `#E53030` | `#A32D2D` / `#7a2020` |
-| 🟠 Medium-High | `#fff4e5` | `#FF8C00` | `#7a3800` / `#5a2a00` |
-| 🟡 Medium | `#fffde7` | `#FFC107` | `#6b5000` / `#4a3800` |
-| 🟢 Low | `#f0fff4` | `#4CAF50` | `#1a5c2a` / `#134520` |
+🔴 High:
+```markdown
+---
+
+> ### 🚨 Risk Verdict — 🔴 High Risk
+> Multiple vendors flagged direct exposure to sanctioned entities and theft-linked funds, representing a significant portion of total incoming flows.
+>
+> ⚡ **Recommendation:** Avoid — do not transact with this address and report to your compliance team.
+```
+
+🟡 Medium:
+```markdown
+---
+
+> ### 🚨 Risk Verdict — 🟡 Medium Risk
+> Indirect exposure to high-risk counterparties was detected, though no direct sanctions or theft links were confirmed.
+>
+> ⚡ **Recommendation:** Proceed with caution — apply enhanced due diligence before transacting.
+```
+
+🟢 Low:
+```markdown
+---
+
+> ### 🚨 Risk Verdict — 🟢 Low Risk
+> Cross-vendor consensus confirms no material risk exposure for this address across both direct and indirect fund flows.
+>
+> ⚡ **Recommendation:** Freely interact — no restrictions identified at this time.
+```
