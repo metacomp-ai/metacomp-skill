@@ -8,7 +8,7 @@ This sub-skill defines the flow for withdrawing cryptocurrency from the user's M
 >
 > **Cancel / Back / Confirm keywords** (defined in SKILL.md Absolute Rules) take priority over step-specific parsing at every step.
 >
-> **Progress header:** prepend each step with `Step X/Y — {step name}` / `第 X/Y 步 — {步骤名}`, where the baseline Y = 7 for first-party and 9 for third-party. Third-party adds STEP 6 (purpose) and STEP 7 (supporting document upload) between the amount step and the confirmation card. **STEP 0 (silent probe) renders no header and consumes no step number; when STEP 0 auto-resolves the party, STEP 1 is not shown — subtract 1 from Y.**
+> **Progress header:** prepend each user-facing step with just its name as a short header — `{step name}` / `{步骤名}`. **Do NOT include any step numbers** (no `Step X/Y`, no `第 X/Y 步`, no "X/Y" count). STEP 0 (silent probe) renders no header. The `STEP N` labels in this doc are internal flow-control markers only and MUST NOT be surfaced to the user.
 
 ---
 
@@ -610,13 +610,9 @@ If the user wants to retype the code (e.g. their TOTP rotated), they just re-sen
 
 Once a valid 6-digit code is received → proceed to STEP 9 (Execute).
 
-Once both the confirmation (STEP 8) and the code (STEP 8.1) are in hand → proceed to STEP 9 (the "Execute" section below). Progress header counts:
-- First-party: confirmation card is `Step 6/7`, execution is `Step 7/7`.
-- Third-party: confirmation card is `Step 8/9`, execution is `Step 9/9`.
+Once both the confirmation (STEP 8) and the code (STEP 8.1) are in hand → proceed to STEP 9 (the "Execute" section below).
 
-The doc section number ("STEP 8 / STEP 9") and the user-facing progress
-header are intentionally decoupled — first-party silently collapses
-STEPs 6 and 7 because they're third-party only.
+The `STEP N` labels ("STEP 8 / STEP 9") are internal flow-control markers only and are never surfaced to the user. The user-facing progress header shows only the step **name**, with no numbers.
 
 ---
 

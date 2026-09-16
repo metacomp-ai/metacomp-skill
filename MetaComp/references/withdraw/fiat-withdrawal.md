@@ -12,7 +12,7 @@ Third-party paths require both `purposeOfTransaction` and `chargeType`. Same-nam
 >
 > **Cancel / Back / Confirm keywords** (defined in SKILL.md Absolute Rules) take priority over step-specific parsing at every step.
 >
-> **Progress header:** prepend each step with `Step X/Y — {step name}` / `第 X/Y 步 — {步骤名}`, where Y depends on the active branch (see §Branch Map).
+> **Progress header:** prepend each user-facing step with just its name as a short header — `{step name}` / `{步骤名}`. **Do NOT include any step numbers** (no `Step X/Y`, no `第 X/Y 步`, no "X/Y" count). STEP 0 renders no header. The `STEP N` labels in this doc are internal flow-control markers only and MUST NOT be surfaced to the user.
 
 ---
 
@@ -22,18 +22,9 @@ The narrative below (STEP 0 → STEP 8) is the single source of truth for the fl
 
 STEP 0 makes the most useful default decision *for* the user: it asks STEP 1 / STEP 2 **only when there is a genuine ≥2-way choice**, auto-resolves an axis that has just one viable value, and routes to the register-in-dashboard empty-state when nothing is viable. The user can always redirect with one sentence afterward.
 
-### Total-step count per branch (for the `Step X/Y` header)
+### Progress header — no step numbers
 
-`Y` = the number of user-facing STOPs in the **resolved** branch. STEP 0 renders **no** progress header and consumes no step number. Start from the per-branch baseline below, then **subtract 1 for each of STEP 1 / STEP 2 that STEP 0 auto-resolved** (no question shown).
-
-| Branch | baseline Y (if both STEP 1 & STEP 2 were asked) |
-|---|---|
-| same-name × first-party | 7 |
-| same-name × third-party | 8 |
-| non-same-name × first-party | 7 |
-| non-same-name × third-party | 8 |
-
-Worked example: a single offerable combo (e.g. only a first-party regular account, no same-name) → STEP 0 resolves both axes, first visible step is STEP 3 currency → `Y = 7 − 2 = 5`.
+The user-facing progress header shows only the step **name** (`{step name}` / `{步骤名}`) — there is **no** `Step X/Y` count to compute. The `STEP N` labels below are internal flow-control markers only and are never surfaced to the user.
 
 ---
 

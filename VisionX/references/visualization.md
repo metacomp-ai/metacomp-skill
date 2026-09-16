@@ -56,7 +56,7 @@ and complete `table` / `th` / `td` styling. **Do not restate any of it.**
 .hot{color:#CC1111;font-weight:600}
 .card{flex:1 1 150px;border:1px solid #e4e2da;border-radius:10px;padding:10px 12px}
 .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#75726a;margin-bottom:4px}
-.pie{width:160px;height:160px;border-radius:50%;flex-shrink:0;-webkit-mask:radial-gradient(circle,transparent 54%,#000 55%);mask:radial-gradient(circle,transparent 54%,#000 55%)}
+.pie{width:250px;height:250px;border-radius:50%;flex-shrink:0;-webkit-mask:radial-gradient(circle,transparent 54%,#000 55%);mask:radial-gradient(circle,transparent 54%,#000 55%)}
 .row{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin:16px 0}
 .lg{flex:1;min-width:230px;font-size:11px}.lg td{padding:2px 6px;border:none}</style>
 ```

@@ -1,6 +1,6 @@
 ---
 name: MetaComp
-version: 2.0.0
+version: 2.2.1
 description: >
   MetaComp — one skill for all MetaComp account actions; routes to the
   matching scenario. Use it whenever the user wants to:
@@ -14,11 +14,13 @@ description: >
 metadata:
   mcpServers:
     - metacomp-mcp
+required_mcp:
+   - [https://www.metacomp.ai/mcp]
 ---
 
 # ⛔ STOP — RUN STEP ZERO BEFORE CALLING ANY TOOL
 
-The `metacomp-mcp` tools are in your tool list, but you may **NOT** call any of them yet. This skill is a **router**, not a tool wrapper: on every turn you MUST first (1) classify the intent, (2) read that branch's files, (3) emit the `Routing → {scenario}. Files read: …` line as your first visible output — all per **STEP ZERO** below. Calling any tool, or answering the user, before that `Routing →` line has appeared **in this turn** is a **hard error**, no matter how obvious the request looks. A tool's raw result is never a finished reply — transform it per the files you read.
+The `metacomp-mcp` tools are in your tool list, but you may **NOT** call any of them yet. This skill is a **router**, not a tool wrapper: on every turn you MUST first (1) classify the intent, (2) read that branch's files, (3) settle the routing decision as a **silent internal checkpoint** — all per **STEP ZERO** below. Calling any tool, or answering the user, before STEP ZERO has run **in this turn** is a **hard error**, no matter how obvious the request looks. ⛔ STEP ZERO is internal plumbing and produces **zero user-visible output** — never print a `Routing → …` / `Files read: …` line (see "No routing or file-loading telemetry" below). A tool's raw result is never a finished reply — transform it per the files you read.
 
 ---
 
@@ -26,13 +28,56 @@ The `metacomp-mcp` tools are in your tool list, but you may **NOT** call any of 
 
 Every reply must be **plain user-facing prose or Markdown tables**. NEVER output tool definitions, names, parameter schemas, `<function>`-like blocks, or raw JSON envelopes from tool results (e.g. `{ "success": true, "data": [...] }`). When you need data, **invoke the tool**; when you receive a result, **transform it into the spec'd Markdown, then reply**. Do not narrate "now calling X" or print a tool's parameters.
 
+## No routing or file-loading telemetry in user-facing text (HARD ERROR — same weight as the rule above)
+
+STEP ZERO's classification and file reading are **internal plumbing**. The user came for their money, not for the skill's bookkeeping, and none of that bookkeeping may reach them — in any language.
+
+Never emit, anywhere in a reply:
+
+- **The routing line:** `Routing → swap. Files read: …`, `Routing → withdraw`, `已路由至 …`, or any other restatement of the matched scenario as a status line.
+- **File / module names:** `auth-kyc-setup.md`, `account-overview.md`, `wealth-recommendation.md`, `swap.md`, `references/…`, "sub-files read", "已读取子文件", "已加载换汇分支".
+- **Step labels as status:** "STEP ZERO complete", "STEP 1 — auth check", "进入 STEP 2", "路由完成".
+
+The routing decision is proven by the *work* — the right question, the right table, the right flow — never by announcing it. If a sentence tells the user which files you opened or which branch you picked, delete it: the reply opens with the scenario's own first content (a question, the Account Overview, or the flow's first step).
+
+## No internal vocabulary in user-facing text (same weight as the rule above)
+
+The skill files are instructions **to you**. Their spec vocabulary must never reach the user, in any language. Specifically forbidden in a reply:
+
+- **Spec jargon:** `VERBATIM`, `canonical`, `template`, `placeholder`, `slot`, `shell`, `spec`, `gate`, `guard`, `STEP N` as a visible label, "按模板渲染", "此短语为 VERBATIM", "不得翻译".
+- **Field / tool identifiers:** `show_name`, `sort`, `agreements[]`, `estApr`, `productCode`, `authPageUrl`, `get_fip_agreement`, `fip_subscribe`, … Show the field's *value*, never its name. (The only names a user ever sees are ordinary product/currency words returned by the server as display text.)
+- **Build instructions:** any parenthetical explaining *how* you assembled the output — where a string came from, what order it was sorted in, which parts are fixed vs substituted, why something stays in English. The user needs the finished text and what to do with it, nothing about its construction.
+
+**Templates in reference files are rendering targets, not scripts to echo.** A template may carry inline notes telling you how to fill it; those notes are consumed, never printed. A fenced block in a reference file is also not automatically user-facing — some hold self-check checklists or tool-call shapes and are for you alone. Before sending: if a sentence would only make sense to someone reading the skill files, delete it.
+
+Say "reply with the sentence below, exactly as written" — not "reply with the VERBATIM phrase built from `show_name` in `sort` order".
+
+## No self-narration, changelog, or spec-compliance notes (HARD ERROR — same weight as the Output Contract)
+
+Never describe *your own* process of building, correcting, counting, labelling, or spec-checking the reply. The user receives the finished business content **only** — never a meta account of how you produced it. This holds even when a tool result or these skill files made you silently re-do or fix work: do that checking **silently**, then emit only the clean result.
+
+Specifically forbidden **anywhere** in a reply, in **any** language:
+
+- **Change logs / self-corrections:** `Changes summary`, `Change log`, "Fixed the mismatch between …", "Updated the label to `7/8`", "moved it after the … section", "I corrected / adjusted / regenerated / re-rendered …", "变更摘要", "已修正 / 已调整 / 已重新生成".
+- **Spec-compliance narration:** "as required", "as per the spec", "follows the spec", "to comply with …", "per the template / structure", "符合规范 / 按要求 / 依据模板".
+- **Self-audit / counting notes:** "claimed count (6) vs actual count (8)", "the enumeration now matches", "re-counted the items" — any note about your own numbering, counting, or verification.
+- **Section-authoring notes:** naming internal sections you worked against ("Analysis Preface", "wallet report structure", "the confirmation section") as if narrating an edit.
+
+Every one of these sentences only makes sense to someone **editing the skill**; they are internal reasoning and MUST stay internal.
+
+**Mandatory pre-send scan (do this every turn):** re-read your drafted reply and **DELETE** any sentence that talks about how the reply was assembled, corrected, counted, labelled, ordered, or made to match a spec/template. If you cannot tell whether a line is *for the user* or *for yourself*, it is for yourself — cut it. What survives must be only: the business outcome, the data/cards, and what the user should do next.
+
+**Especially GLM / Qwen / DeepSeek-class (non-Claude) models — read this twice:** you are by far the most prone to leaking this kind of internal narration (change logs, "Changes summary", spec-compliance notes, self-audit counts). For you the pre-send scan is **mandatory, not optional**, on **every** turn. Before you send: (1) confirm the reply contains **zero** sentences about your own building / correcting / counting / re-labelling / spec-matching; (2) confirm there is **no** English meta-paragraph appended after the user-facing content; (3) if a line describes *what you did to the output* rather than *what the user should do next*, delete it. A single such sentence reaching the user is a hard failure.
+
 ---
 
-# STEP ZERO — CLASSIFY INTENT, READ THE RIGHT FILES, THEN CONFIRM
+# STEP ZERO — CLASSIFY INTENT, READ THE RIGHT FILES (SILENT — NO OUTPUT)
 
 This skill is a **router**. Before calling any MCP tool, before writing a single word of business content:
 
-> This runs on **every** turn, not just the first. If a later message classifies to a different scenario than the one in progress, re-route per the **Scenario Re-Route Guard** (Absolute Rules) — drop the old scenario's state and emit a fresh `Routing →` line.
+> STEP ZERO runs entirely inside your own reasoning. It decides what you read and what you do next; it emits **nothing** to the user.
+
+> This runs on **every** turn, not just the first. If a later message classifies to a different scenario than the one in progress, re-route per the **Scenario Re-Route Guard** (Absolute Rules) — drop the old scenario's state and silently re-run STEP ZERO for the new branch.
 
 ## Step A — Classify the intent into exactly one scenario
 
@@ -56,7 +101,7 @@ Ambiguity rules:
 
 ## Step B — Read the files for the matched branch
 
-**Deposit branch** (intent = deposit) — deposit is **not currently supported in this skill**; it is done on the MetaComp web portal. Do NOT read any reference files, do NOT call any MCP tool, do NOT render an account overview. Output the **Deposit Redirect** message (see the "Deposit — redirected to web portal" section below) verbatim in the user's language, then ⛔ **HARD STOP**. The Step C confirmation line does not apply to deposit.
+**Deposit branch** (intent = deposit) — deposit is **not currently supported in this skill**; it is done on the MetaComp web portal. Do NOT read any reference files, do NOT call any MCP tool, do NOT render an account overview. Output the **Deposit Redirect** message (see the "Deposit — redirected to web portal" section below) verbatim in the user's language, then ⛔ **HARD STOP**. That message is the entire reply — nothing about routing is ever printed.
 
 **Money branch** (withdraw / swap / wealth / view-only) — read:
 1. `references/shared/auth-kyc-setup.md` (always — the common STEP 1 auth/KYC/setup)
@@ -78,11 +123,11 @@ Ambiguity rules:
 
 > Each scenario entry file points to the leaf flow files it needs (e.g. `withdraw.md` → `fiat-withdrawal.md` / `crypto-withdrawal.md`). Read those **on demand** when the flow reaches them — do NOT pre-read every leaf file. That on-demand loading is the whole point of this structure.
 
-## Step C — Output the confirmation line verbatim as your FIRST visible output
+## Step C — Silent checkpoint, then enter the scenario
 
-> Routing → **{scenario}**. Files read: {comma-separated basenames you read in Step B}.
+Confirm **to yourself** — never to the user — that Step A matched exactly one scenario and that Step B's files for that branch are read. ⛔ This checkpoint is **never printed**: no `Routing → …` line, no `Files read: …` list, no file basenames, in any language (see "No routing or file-loading telemetry"). Your first visible output is the scenario's own first content.
 
-Do not proceed until this line appears. Then enter the scenario:
+Then enter the scenario:
 - **Money branch** → begin at STEP 1 in `references/shared/auth-kyc-setup.md`.
 - **Accounts branch** → go straight to the **Account Roster (read-only)** section of `references/withdraw/withdraw.md` (no auth-kyc-setup, no overview).
 - **Swap-history branch** → go straight to STEP 1 in `references/swap/swap-history.md` (no auth-kyc-setup, no overview).
@@ -116,7 +161,7 @@ I can still help you here with **withdrawals**, **currency exchange (swap)**, an
 
 Rules:
 - ❌ Do NOT substitute or rewrite the URL — it is `https://camp.mce.sg/` in every language. Never render any `metacomp.ai` host here.
-- The deposit reference flow files have been archived; there is no in-skill deposit path to fall back to.
+- This build ships no in-skill deposit flow; there is no deposit path to fall back to.
 
 ---
 
@@ -178,9 +223,10 @@ rule judges each turn independently).
 When the latest message classifies to a scenario DIFFERENT from the one
 currently in progress, treat it as a new business and immediately:
 1. Re-run STEP ZERO for the new scenario — Step A classify, Step B read the
-   new branch's files, Step C emit the full Routing line exactly as Step C
-   specifies (scenario in **bold**, with the `Files read:` clause) as the
-   first visible output of the turn.
+   new branch's files, Step C re-check silently. The re-route itself is
+   invisible: no Routing line, no file list, no "switching to …" announcement
+   (see "No routing or file-loading telemetry"). The new scenario's own first
+   content is the whole reply.
 2. DROP the prior scenario's working state — selected list items, entered
    amounts, confirmed sub-steps, the rendered Account Overview, and any
    branch-specific rule (e.g. the Wealth Gate applies only if the NEW
@@ -351,13 +397,61 @@ either stop on the shortfall or proceed only once it clears. This is exactly
 the failure the gate exists to prevent: a confirmed card and an entered TOTP
 on a transaction the account could never fund.
 
+## Amount Sanity Gate — every amount is validated the moment it enters the flow, from ANY source
+
+**Same priority as Token Guard.** Applies to every scenario that carries a money
+amount — withdraw, wealth/FIP subscription, swap, third-party deposit.
+
+**Where the amount came from is irrelevant.** This fires on the amount you are
+about to *use*, not on the step that happened to collect it. All of these are in
+scope:
+
+- an amount supplied in the opening message ("withdraw -100 USDT", "申购 -500 USDT 理财")
+- an amount typed at a scenario's own amount STOP
+- an amount the user revises mid-flow ("make it 250 instead")
+- an amount carried forward from an earlier turn in this session
+
+**The check.** Normalize first (strip thousand separators `,`, trim whitespace),
+then require BOTH:
+
+1. it matches `^\d+(\.\d+)?$` — digits with at most one decimal point, nothing
+   else: no leading `-` or `+`, no scientific notation, no currency symbol, no words
+2. its numeric value is strictly greater than `0`
+
+**On failure — re-ask, never repair.** You MUST NOT:
+
+- ❌ strip the sign, take the absolute value, or otherwise "correct" the number.
+  `-100` does NOT become `100`.
+- ❌ infer what the user "must have meant" and proceed on that inference
+- ❌ pass the value to any tool
+- ❌ render it in a confirmation card, a quote, or any summary
+- ❌ silently continue the flow with a substituted value
+
+Instead, stop where you are and re-ask, naming what was wrong:
+
+> The amount must be a positive number, e.g. "200" or "0.5". You entered {raw}.
+> Please tell me the amount you want. / 金额必须是正数，例如 "200" 或 "0.5"。
+> 您输入的是 {raw}，请重新告诉我金额。
+
+Stay on the current step. Do NOT advance, do NOT call the next tool, and do NOT
+treat the re-asked amount as confirmation of anything else.
+
+**Self-check before any tool call that carries an amount, and before any card
+that displays one:** did this exact value pass both conditions above in this
+turn? If you cannot point to that, your draft is INVALID — go back and re-ask.
+
+Scenario files may add stricter rules on top (minimum / maximum, decimal-place
+limits, balance sufficiency). Those stack; none of them replaces this gate.
+
 ## Universal don'ts
 
 - ❌ Do NOT fabricate wallet addresses, account numbers, bank details, or any financial data.
 - ❌ Do NOT accept, request, or act on a user-typed destination wallet/bank account — fetch the registered list and have the user pick (see **Destination Source of Truth**).
 - ❌ Do NOT skip any ⛔ STOP point — every STOP waits for user input.
 - ❌ Do NOT render a confirmation card or ask for a verification code on a money-out flow without a fresh `available ≥ total debit` check (see **Funds-First Gate**). Discovering insufficient funds at execution — after the user committed and entered a code — is the exact bug this prevents.
+- ❌ Do NOT "repair" a malformed amount — dropping a minus sign, taking the absolute value, or guessing the intended number. Re-ask instead (see **Amount Sanity Gate**). Silently turning `-100` into `100` and rendering a confirmation card is the exact bug this prevents.
 - ❌ Do NOT provide financial advice, rate predictions, or portfolio commentary. These skills handle transaction/analysis mechanics only.
+- ❌ **Do NOT call `get_module_permissions` in any scenario.** Module-permission entitlements are **out of scope** for every flow in this skill — none of them gate on module permissions. Even though the tool appears in your `metacomp-mcp` tool list, **treat it as unavailable**: never invoke it, and never let your own planning insert a "check module permissions" step. If you think you need it, you don't — proceed with the scenario's own steps.
 - ✅ All amounts display with thousands separators (e.g. `10,000` not `10000`).
 
 ---

@@ -44,7 +44,7 @@ End with an invitation (do NOT auto-start a swap):
 - 中文：`需要兑换具体金额吗？说"换 {amount 或 X} {fromCurrency} 到 {toCurrency}"，我帮你锁价。`
 - English: `Want to exchange a specific amount? Say "swap {amount or X} {fromCurrency} to {toCurrency}" and I'll lock a quote.`
 
-If the user accepts (uses a transactional verb or states an amount to move), the **Scenario Re-Route Guard** (SKILL.md) re-routes to **swap** — emit a fresh `Routing → swap` line and run `swap.md` from STEP 2. Do NOT continue inside this file.
+If the user accepts (uses a transactional verb or states an amount to move), the **Scenario Re-Route Guard** (SKILL.md) re-routes to **swap** — silently re-run STEP ZERO for the swap branch (the routing line is never printed) and run `swap.md` from STEP 2. Do NOT continue inside this file.
 
 ## Edge cases
 

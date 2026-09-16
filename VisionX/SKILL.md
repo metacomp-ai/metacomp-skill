@@ -1,6 +1,6 @@
 ---
 name: VisionX
-version: 2.3.1
+version: 2.4.0
 description: >
   MetaComp VisionX — Web3 wallet & transaction security screening. Use it
   whenever the user wants to CHECK / SCAN / VERIFY a wallet address or a
@@ -22,6 +22,12 @@ required_mcp:
 # CRITICAL OUTPUT CONTRACT — READ FIRST
 
 Every reply is **plain user-facing prose and Markdown tables**, with exactly one exception: the **Wallet Security Dashboard (Step ②)**, which is rendered as widgets — see the Dashboard Widget Contract below. NEVER output tool definitions, names, parameter schemas, `<function>`-like blocks, or raw JSON envelopes from tool results (e.g. `{ "success": true, "data": [...] }`). When you need data, **invoke the tool**; when you receive a result, **transform it into the spec'd Markdown (or dashboard HTML), then reply**. Do not narrate "now calling X" or print a tool's parameters.
+
+## No sub-file / STEP ZERO telemetry in user-facing text (HARD ERROR — same weight as the rule above)
+
+Reading the sub-skill files is **internal plumbing**, and the user never sees it. Never emit, anywhere in a reply, in any language: the `Sub-files have been read：…` line, any `wallet-report ✓ / visualization ✓ / …` checklist, any `references/*.md` filename, or a status label such as "STEP ZERO complete" / "已读取子文件" / "子技能加载完成". The report itself is the proof that the files were read.
+
+Every message you send opens directly with user-facing content — the Analysis Preface (`> 🔬 …`), a required question, or a failure notice — and nothing else.
 
 ---
 
@@ -153,7 +159,7 @@ Branding: **MetaComp VisionX** (see Branding at the end of this file).
 
 ---
 
-# ⛔ STEP ZERO — READ SUB-SKILLS THEN OUTPUT CONFIRMATION
+# ⛔ STEP ZERO — READ SUB-SKILLS (SILENT — NO OUTPUT)
 
 Before writing a single word, before calling any tool:
 
@@ -165,25 +171,23 @@ Before writing a single word, before calling any tool:
 5. `references/visualization.md`
 6. `references/chart-spec.md`
 
-**Step B — Output this line verbatim as the FIRST visible output, exactly ONCE per turn:**
+**Step B — Silent checkpoint (printed NOWHERE):**
 
-> Sub-files have been read：wallet-report ✓ / wallet-exposure-tables ✓ / wallet-risk-card ✓ / transaction-report ✓ / visualization ✓ / chart-spec ✓
+Confirm **to yourself** that all six files are read, then go straight to the VisionX call. ⛔ Nothing
+about this step reaches the user: no `Sub-files have been read` line, no `✓` checklist, no filenames,
+in any language (see "No sub-file / STEP ZERO telemetry" above). A reply that opens with such a line is
+a failed response.
 
-Do not proceed until this line appears in the response.
-
-⛔ **Where it goes:** this line belongs to the **message that carries the VisionX tool call** — emit it
-there and nowhere else. The later message that carries the report must begin **directly** with the
-Analysis Preface (`> 🔬 …`); it must not open with this line again. If you are writing the report, the
-line has already been sent — do not reprint it.
-⛔ Emit the line, then go straight to the tool call. Do not add a lead-in such as "Let me screen this
+⛔ Go straight from the checkpoint to the tool call. Do not add a lead-in such as "Let me screen this
 wallet…" or "现在为你查询…" — narrating the call is forbidden by the CRITICAL OUTPUT CONTRACT above.
+The message that carries the report begins **directly** with the Analysis Preface (`> 🔬 …`).
 
 ---
 
 # PRE-ANALYSIS CHECKLIST — Before calling any MCP tool
 
 ```
-☐ 1. STEP ZERO complete — confirmation line output?
+☐ 1. STEP ZERO complete — all six sub-files read (silently; nothing printed)?
 ☐ 2. Call VisionX ONCE, directly with the user's target address (no dummy pre-flight call)
        → Result returned → continue
        → Call did NOT return a usable result → triage it first, do NOT assume authorization
@@ -325,8 +329,8 @@ address matches none of the known patterns below.
 **Wallet — turn hygiene.** Scan the whole turn, not just the final message:
 
 ```
-☐ STEP ZERO confirmation line: present, and appearing EXACTLY ONCE across every message
-     in this turn? (zero occurrences and two occurrences are both failures)
+☐ Zero STEP ZERO / sub-file telemetry across every message in this turn? ("Sub-files have
+     been read", a `✓` file checklist, any `references/*.md` name — each occurrence is a failure)
 ☐ VisionX called exactly ONCE this turn? (a second call is billed and returns nothing new)
 ☐ No tool-call narration anywhere ("Let me screen…", "现在为你查询…")?
 ```
@@ -380,14 +384,73 @@ Any unchecked item → render it now before ending the response.
 choose a message. Only Case A below may show the Authorization Guide; everything else must not
 mention keys, authorization, connecting, or re-sending credentials — those are already fine.
 
+Three outcomes, and exactly one applies: **Case A** access error → Authorization Guide · **Case B**
+credits exhausted → Insufficient Credits notice (with the top-up link) · **Case C** anything else →
+Data Unavailable notice.
+
 ### Case A — the error actually says it is an access problem
 Trigger **only** when the error carries an explicit access signal: HTTP `401` / `403`, or wording such
 as *unauthorized*, *forbidden*, *invalid key*, *expired token*, *authentication failed*, or a payload
 containing `authPageUrl`.
 → Render the **Authorization Guide** below. STOP.
 
-### Case B — anything else (this is the common case)
-Trigger when the call returns **no usable result** and there is no explicit access signal:
+### Case B — the error says the screening credits / quota are exhausted
+Trigger when the error carries a **billing / quota** signal rather than an access one: wording such as
+*insufficient credits*, *insufficient balance*, *out of credits*, *credit limit reached*, *quota
+exceeded*, *payment required*, HTTP `402`, or 中文 *额度不足* / *余额不足* / *配额已用尽*.
+
+This is neither an access problem nor a data-service problem: the connection and the key are fine, the
+service answered — it declined on **billing**. The account has run out of prepaid screening credits, so
+the only way forward is a top-up.
+→ Render the **Insufficient Credits notice** below, which carries the top-up link. STOP.
+
+❌ Never show the Authorization Guide here — nothing is wrong with the key, and telling the user to
+re-authorize sends them to fix something that is not broken.
+❌ Never show the Data Unavailable notice here — the failure is billing, not empty data.
+❌ Never deliver a verdict anyway: no credits ⇒ no screening ⇒ no risk opinion. Do not reuse an earlier
+result for a *different* address (even a near-identical one) to describe this one, and do not fall back
+on your own knowledge or a block explorer.
+
+### Insufficient Credits notice (Case B template)
+
+```markdown
+> ⚠️ **MetaComp VisionX screening credits exhausted**
+>
+> The screening request for `{address}` could not be completed: this account's MetaComp VisionX
+> screening credits have run out. Your connection and authorization are both fine — screening is billed
+> per call, and the balance has reached its limit.
+>
+> **[Top up in the MetaComp dashboard](https://www.metacomp.ai/dashboard)**
+>
+> Once the top-up is done, tell me here and I'll run the full screening on `{address}` right away.
+```
+
+**中文报告：**
+
+```markdown
+> ⚠️ **MetaComp VisionX 筛查额度不足**
+>
+> 针对 `{address}` 的筛查请求未能完成：当前账户的 MetaComp VisionX 筛查额度已用尽。您的连接与授权
+> 均正常——筛查按次计费，额度已达上限。
+>
+> **[前往 MetaComp 控制台充值](https://www.metacomp.ai/dashboard)**
+>
+> 充值完成后在此告诉我，我会立即对 `{address}` 执行完整的风险筛查。
+```
+
+Rules for this notice:
+- ⚠ Render it in the user's dominant language (per the Language rule at the end of this file) — translate
+  the heading and body; the top-up **link is always present**, and the URL stays byte-for-byte as written
+  (the build pins it to the right environment).
+- The top-up link is the **required** call to action: a credits failure explained without a way to top up
+  is an incomplete answer.
+- ⛔ Do **not** retry the call in the same turn — a top-up cannot land mid-turn, and every call is billed.
+- When the user comes back with "topped up" / "已充值" / "好了", that is a **new turn**: the one-call-per-turn
+  budget is fresh, so run the screening once for the same target and continue the normal report flow. If it
+  still returns a credits error, render this notice again — never loop retries inside one turn.
+
+### Case C — anything else (this is the common case)
+Trigger when the call returns **no usable result**, with no access signal and no billing signal:
 
 - an empty or blank error with no message
 - `null`, `{}`, or an empty string as the result
@@ -403,7 +466,7 @@ something that is not broken.
 ⛔ Do **not** silently retry the call in the same turn: a retry costs another full call and another
 timeout wait. Ask the user to re-send instead.
 
-### Data Unavailable notice (Case B template)
+### Data Unavailable notice (Case C template)
 
 ```markdown
 > ⚠️ **MetaComp VisionX returned no data**
@@ -427,7 +490,7 @@ timeout wait. Ask the user to re-send instead.
 ```
 
 ⚠ Render the notice in the user's dominant language (per the Language rule at the end of this file).
-❌ Never tell the user in Case B to re-authorize, to enter a key, to reconnect, or to add a connector.
+❌ Never tell the user in Case C to re-authorize, to enter a key, to reconnect, or to add a connector.
 ❌ Never claim MetaComp VisionX is "not connected" / "unreachable" / "not added".
 
 ---
@@ -502,8 +565,10 @@ The "Are you checking the sender or the recipient?" answer sets the transaction 
 - ❌ Do NOT provide partial analysis before the screening call succeeds.
 - ✅ The screening call fails for ANY reason → STOP, and triage the failure before writing anything
   (see "Screening Call Failure — Triage"). An explicit access error (401/403/invalid key/expired
-  token/`authPageUrl`) → Authorization Guide. Empty result, blank error, or timeout → Data Unavailable
-  notice. ⛔ Never default to the Authorization Guide just because a call failed.
+  token/`authPageUrl`) → Authorization Guide. A credits / quota error (insufficient credits / 402 /
+  额度不足) → Insufficient Credits notice, **always with the top-up link**. Empty result, blank error, or
+  timeout → Data Unavailable notice. ⛔ Never default to the Authorization Guide just because a call
+  failed, and never answer a credits failure without offering the top-up link.
 - **Vendor confidentiality:** ❌ NEVER display any real vendor name (Beosin, Elliptic, Merkle Science, Chainalysis, TRM, SlowMist, or any other) ANYWHERE in the output — including the Analysis Preface, all prose, and every table (Cross-Vendor Risk Comparison included). ✅ ALWAYS refer to vendors only by the anonymous labels **Vendor 1 / Vendor 2 / Vendor 3 / …** (assign in a stable order within one response), or by aggregate phrasing ("multiple vendors", "cross-vendor consensus", "all vendors"). There is NO exception — the Analysis Preface must NOT name vendors either.
 
 ---
@@ -514,7 +579,7 @@ Detect the dominant language of the user's latest message and use it consistentl
 
 **Tables and widgets are NOT exempt.** Every string this skill generates is covered: Markdown table headers, field names, row labels, risk badges (`⚠️ High Risk` → `⚠️ 高风险`), verdict and recommendation lines, empty-state lines (`— No direct incoming exposure recorded —` → `— 无直接流入敞口记录 —`), section headings, and every label inside widget HTML. The table templates in `references/*.md` are **structural specs written in English, not verbatim strings** — in a non-English turn, translate every header, label, and badge in them, exactly as the 中文报告 example in `wallet-report.md` (Exchange Wallet Identifier) demonstrates; that treatment applies to EVERY table. Reproducing an English template verbatim in a non-English turn is a Language-rule violation, not fidelity to the spec.
 
-The ONLY strings that stay verbatim in every language: the STEP ZERO `Sub-files have been read` confirmation line; currency/asset codes (USD, USDT, BTC…); network names; addresses and hashes; brand and proper names (MetaComp, MetaComp VisionX, and entity/exchange names such as OKX or Uniswap); and `DeFi` (a term of art in every language — also when the data spells it `Defi` or `Deft`). The anonymous vendor labels localize naturally (`Vendor 1` → `厂商 1`) while staying anonymous.
+The ONLY strings that stay verbatim in every language: currency/asset codes (USD, USDT, BTC…); network names; addresses and hashes; brand and proper names (MetaComp, MetaComp VisionX, and entity/exchange names such as OKX or Uniswap); and `DeFi` (a term of art in every language — also when the data spells it `Defi` or `Deft`). The anonymous vendor labels localize naturally (`Vendor 1` → `厂商 1`) while staying anonymous.
 
 **Category vocabulary is LOCALIZED, never left in English in a non-English turn.** Every risk/exposure category name — `tagTypeVerbose` values, the fixed nine high-risk rows of the D1 tables, donut-legend entries, detail-table rows, high-risk category lists — follows the turn's language. Display format: **English turn → English name only** (`Gambling`); **non-English turn → the localized name ONLY** (`赌博`) — ⛔ never append the English original in parentheses (`赌博（Gambling）` is wrong), in tables, widgets, legends, lists, AND prose alike. Canonical Chinese renderings (use these exact words every time):
 

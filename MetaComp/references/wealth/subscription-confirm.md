@@ -21,6 +21,14 @@ Display after `get_fip_agreement` returns and before `fip_subscribe` is called.
 
 `get_fip_agreement` returns `agreements[]`, each with `show_name`, `url`, `sort`. Render the list sorted by `sort` ascending. Do NOT attempt to fetch or paste the PDF contents — show the clickable link with the `show_name` as the link text.
 
+**How to fill the template below** (these build notes are for you — never print them, per the CRITICAL OUTPUT CONTRACT's *No internal vocabulary* rule):
+- Agreement links: one bullet per `agreements[]` entry, `sort` ascending, `show_name` as link text, `url` as target.
+- Confirmation sentence: `I have read and agree to ` + each `show_name` wrapped in `「」`, joined by ` & `, in the same `sort` order. Fixed English; only the `show_name` slots are substituted.
+- Example — if the list holds `Master Note Agreement` and `Note Certificate Schedule 2 Open Term (T+3)`, the sentence is `I have read and agree to 「Master Note Agreement」 & 「Note Certificate Schedule 2 Open Term (T+3)」`.
+- `最短持有` row: `variant.mhp` when the server returns one, otherwise the em dash `—`. Never print the fallback as a condition.
+
+Everything inside the fence is user-facing text only. Do not add a parenthetical explaining where the sentence came from, that it is verbatim, that it must not be translated, or how it was assembled.
+
 ```
 **认购摘要**
 
@@ -31,14 +39,12 @@ Display after `get_fip_agreement` returns and before `fip_subscribe` is called.
 | 期限 | {variant.term} |
 | 年化 | {variant.estApr} |
 | 结算 | {variant.liquidity} |
-| 最短持有 | {variant.mhp 或 "—"} |
+| 最短持有 | {variant.mhp} |
 | 认购金额 | {subscriptionAmount} {currency} |
 
 ---
 
 **请阅读以下协议**
-
-按 get_fip_agreement 返回的 `agreements[]` 顺序（`sort` 升序）渲染为可点击链接：
 
 - [{show_name_1}]({url_1})
 - [{show_name_2}]({url_2})
@@ -46,11 +52,9 @@ Display after `get_fip_agreement` returns and before `fip_subscribe` is called.
 
 ---
 
-请回复以下**完全一致**的英文内容以继续（此短语为 VERBATIM，不得翻译；`show_name` 来自本次 get_fip_agreement 返回，按 `sort` 顺序用「」包裹并以 & 连接）：
+请回复下面这句话（**原文照抄，不要改动或翻译**）以继续：
 
 **I have read and agree to 「{show_name_1}」 & 「{show_name_2}」 ...**
-
-（示例：上面协议列表里有 `Master Note Agreement` 和 `Note Certificate Schedule 2 Open Term (T+3)`，则短语为 `I have read and agree to 「Master Note Agreement」 & 「Note Certificate Schedule 2 Open Term (T+3)」`。）
 
 任何其他回复都将取消本次认购。
 ```
@@ -60,8 +64,9 @@ Display after `get_fip_agreement` returns and before `fip_subscribe` is called.
 - A summary table without the agreement link list below it.
 - A prompt ending in "Do you confirm this subscription?" / "确认认购?" / "确认本次认购?" / a thumbs-up · thumbs-down question.
 - Accepting "yes" / "y" / "ok" / "是" / "好的" / "确认" / "同意" / 👍 / emoji in reply — the ONLY acceptance path is the exact `I have read and agree to 「…」 & 「…」` phrase built from `agreements[].show_name`.
-- Rendering a summary with English column labels like `Product / Currency / Amount / APY / Term / Settlement` and NO agreement list + VERBATIM instruction. If your draft looks like that, you have left the template — restart from the `认购摘要` block above.
-- Omitting the VERBATIM instruction in Chinese conversations "because the user speaks Chinese." The phrase stays fixed English regardless of conversation language — only surrounding prose is localized.
+- Rendering a summary with English column labels like `Product / Currency / Amount / APY / Term / Settlement` and NO agreement list + copy-exactly instruction. If your draft looks like that, you have left the template — restart from the `认购摘要` block above.
+- Omitting the copy-exactly instruction line in Chinese conversations "because the user speaks Chinese." The sentence stays fixed English regardless of conversation language — only surrounding prose is localized.
+- **Leaking build notes into the ask.** Any of these in the visible output = defect: the word `VERBATIM`; the identifiers `show_name` / `sort` / `agreements[]` / `get_fip_agreement`; a parenthetical saying where the sentence came from, how it was joined, which parts are fixed, or why it stays English (e.g. `（此短语为 VERBATIM，不得翻译；show_name 来自本次协议返回，按 sort 顺序用「」包裹并以 & 连接）`); the worked example above; or a closing line like "请回复以上 VERBATIM 短语以确认认购". The user sees only: read these agreements, copy this sentence to continue, anything else cancels.
 
 ### Variable mapping
 

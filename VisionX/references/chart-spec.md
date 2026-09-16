@@ -13,7 +13,7 @@ each its own `show_widget` call (see `visualization.md`). Everything below feeds
 Add to the widget's `<style>` block:
 
 ```css
-.pie{width:150px;height:150px;border-radius:50%;flex-shrink:0;
+.pie{width:250px;height:250px;border-radius:50%;flex-shrink:0;
 -webkit-mask:radial-gradient(circle,transparent 52%,#000 53%);mask:radial-gradient(circle,transparent 52%,#000 53%)}
 .row{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
 .lg{flex:1;min-width:250px}.lg td{padding:4px 8px}
