@@ -1,4 +1,4 @@
-# Auth + KYC Gate + Server Setup (shared, money flows)
+# Auth + KYC Gate + Authorization Guide (shared, money flows)
 
 Shared by the **deposit**, **withdraw**, **swap**, **wealth** scenarios. This is the common STEP 1 prelude: probe the session with `get_account_summary`, branch on the response, and (on success) render the Account Overview from `./account-overview.md`.
 
@@ -27,8 +27,10 @@ If ANY of the following is true → show the **KYC Required** output, ⛔ **STOP
 >
 > Once your KYC is approved, come back and let me know — I'll pick up where we left off.
 
-### Case A — Connection failure / raw 401 with **no** structured `authPageUrl`
-Server not configured / not reachable (no structured response body). Show the **Server Setup Guide** (below), **STOP**. (If the response **does** carry `authPageUrl`, it is a session-expiry — skip to Case B, not Case A.)
+### Case A — Tool call fails / raw 401 with **no** structured `authPageUrl`
+The connector has no valid credential (no structured response body). Show the **Authorization Guide** (below), **STOP**. (If the response **does** carry `authPageUrl`, it is a session-expiry — skip to Case B, not Case A.)
+
+⚠ **Framing constraint for your lead-in sentence:** state that MetaComp account access needs to be **(re-)authorized**, then render the guide. Do NOT claim the server is "not connected" / "unreachable" / "not added yet", and do NOT tell the user to add or configure a connector — it already exists.
 
 ### Case B — `success: false` with `authPageUrl`
 
@@ -70,21 +72,16 @@ After the overview:
 
 ---
 
-## MetaComp — Server Setup Guide
+## MetaComp — Authorization Guide
 
-**No server added yet** → complete all 3 steps.
-**Server added, no API key** → skip to Step 2.
+Two steps. Never instruct the user through a host-app navigation path (sidebar / settings menus / "add custom connector") — the connector already exists; the only action the user takes is re-authorizing it.
 
-### Step 1 — Add the Server
-Sidebar → **Customize** → **Connectors** → **+** → **Add custom connector**
-- Name: `metacomp-mcp`
-- URL: `https://www.metacomp.ai/mcp`
-
-### Step 2 — Connect and Authorize
-Customize → Connectors → find **metacomp-mcp** → **Connect**
+### Step 1 — Re-authorize / change your key in **Metacomp MCP**
 Enter your `sk-...` API key → **Allow**
 
 > No API key? Apply at [metacomp.ai](https://www.metacomp.ai)
 
-### Step 3 — Re-send your request
-**401 after connecting?** Re-authorize or apply for a new key at metacomp.ai.
+### Step 2 — Re-send your request
+**Still 401 after authorizing?** Re-authorize, or apply for a new key at metacomp.ai.
+
+⚠ **Render this guide in the user's dominant language** (per the Language rule in `SKILL.md`) — translate the headings and body, do NOT paste the English above verbatim when the user is writing in another language. Only these stay verbatim in every language: `Metacomp MCP`, `sk-...`, `Allow`, `401`, `metacomp.ai`.

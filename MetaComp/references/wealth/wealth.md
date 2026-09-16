@@ -135,7 +135,9 @@ The phrase is **fixed English VERBATIM** regardless of conversation language; `�
 **STEP 5 rendering contract — the ask message MUST contain, together:**
 1. The `认购摘要` summary table (per `subscription-confirm.md`).
 2. The agreement link list from `agreements[]` — one clickable Markdown link per entry, sorted by `sort` ascending.
-3. The VERBATIM phrase `I have read and agree to 「…」` with real `show_name` values substituted.
+3. The fixed-English sentence `I have read and agree to 「…」` with real `show_name` values substituted, introduced by a plain "copy this exactly to continue" line.
+
+…and **nothing about how it was built**: no `VERBATIM`, no `show_name` / `sort` / `agreements[]` / tool names, no parenthetical on sorting, joining, wrapping, or why it stays English. Those are build notes for you (see the CRITICAL OUTPUT CONTRACT's *No internal vocabulary* rule) — printing any of them is a defect on its own, even when items 1–3 are all present.
 
 If any of the three is missing → not STEP 5; regenerate from the template. ❌ Do NOT render a simplified "Do you confirm? / 确认认购?" yes-no prompt — discard and re-render if you catch yourself.
 
