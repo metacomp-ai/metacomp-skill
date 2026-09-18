@@ -1,14 +1,14 @@
 ---
 name: VisionX
-version: 2.4.0
+version: 2.4.1
 description: >
   MetaComp VisionX — Web3 wallet & transaction security screening. Use it
   whenever the user wants to CHECK / SCAN / VERIFY a wallet address or a
   transaction hash (check address, verify wallet, scan address, address risk,
   查地址, 地址安全, 查钱包, 钱包安全, 地址风险), pastes an address shaped like
-  0x… (Ethereum), T… (Tron), or bc1…/1…/3… (Bitcoin), provides a transaction
-  hash to screen, or asks any Web3 security / risk / scam / AML /
-  suspicious-activity question ("is this wallet safe", "这个地址安全吗",
+  0x… (Ethereum), T… (Tron), bc1…/1…/3… (Bitcoin), or a bare base58 string
+  (Solana), provides a transaction hash to screen, or asks any Web3 security /
+  risk / scam / AML / suspicious-activity question ("is this wallet safe", "这个地址安全吗",
   "是不是诈骗地址", "这笔交易有风险吗"). Trigger even without the words
   "MetaComp" or "VisionX"; when unsure whether a string is a wallet address
   or a transaction hash, load this skill and let it decide.
@@ -153,7 +153,7 @@ What the user is paying for is the **numbers**, not the narration. When in doubt
 
 # VisionX — Web3 wallet / transaction security
 
-Triggered by a wallet address (`0x…`, Bitcoin/Tron), a transaction hash, or a Web3 security / risk / scam / suspicious-activity question. This skill has no account/KYC/auth flow — authorization is proven by the screening call itself (see PRE-ANALYSIS CHECKLIST).
+Triggered by a wallet address (`0x…`, Bitcoin/Tron/Solana), a transaction hash, or a Web3 security / risk / scam / suspicious-activity question. This skill has no account/KYC/auth flow — authorization is proven by the screening call itself (see PRE-ANALYSIS CHECKLIST).
 
 Branding: **MetaComp VisionX** (see Branding at the end of this file).
 
@@ -213,6 +213,7 @@ address matches none of the known patterns below.
 | `0x` + 40 hex chars                         | Ethereum |
 | starts with `T` (base58, ~34 chars)         | Tron     |
 | starts with `1` / `3` / `bc1`               | Bitcoin  |
+| base58, 32–44 chars, none of the prefixes above | Solana |
 | none of the above / cannot be determined    | ASK the user which network (only here) |
 
 - Wallet query: infer from `walletAddress`.
@@ -523,7 +524,7 @@ One tool covers wallet-only, transaction-only, and combined screening. **Billed 
 
 ```json
 {
-  "network": "Bitcoin|Ethereum|Tron",
+  "network": "Bitcoin|Ethereum|Tron|Solana",
   "walletAddress": "0x...",            // optional — wallet to screen
   "transactionDetails": [{             // optional — transactions to screen
     "hash": "0x...", "asset": "USDT",

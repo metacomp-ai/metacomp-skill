@@ -99,4 +99,4 @@ Authorization Guide.
 - `transactionCheck.success === false` / `code !== 0`, empty result, or timeout → **Case B**: Data
   Unavailable notice. Do not mention keys or authorization.
 - Explicit `401` / `403` / invalid key / expired token → **Case A**: Authorization Guide.
-- Unsupported network → only Bitcoin, Ethereum, Tron supported.
+- Unsupported network → only Bitcoin, Ethereum, Tron, Solana supported.
