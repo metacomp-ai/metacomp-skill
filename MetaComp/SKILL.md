@@ -1,6 +1,6 @@
 ---
 name: MetaComp
-version: 2.2.1
+version: 2.2.2
 description: >
   MetaComp — one skill for all MetaComp account actions; routes to the
   matching scenario. Use it whenever the user wants to:
