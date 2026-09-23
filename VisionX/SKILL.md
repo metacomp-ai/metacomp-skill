@@ -1,6 +1,6 @@
 ---
 name: VisionX
-version: 2.4.1
+version: 2.4.2
 description: >
   MetaComp VisionX — Web3 wallet & transaction security screening. Use it
   whenever the user wants to CHECK / SCAN / VERIFY a wallet address or a
@@ -358,8 +358,8 @@ re-render that block. Structural checkboxes alone do not catch wrong numbers.
      denominator is wrong)
 ☐ Step ⑥ row count per table == length of its source array (no dropped entries)
 ☐ Any Step ④ vendor column whose source array is empty is `—` on every row
-☐ Risk level rendered as one of the four mapped badges only — no raw `level` string,
-   no `🔴 High (Severe)`
+☐ Risk level rendered with its own mapped label — `Medium-Low` stays `🟡 Medium-Low` (never shortened to Medium),
+   `Severe` / `Critical` stay `🔴 Severe` / `🔴 Critical` (not High), no `🔴 High (Severe)`
 ```
 
 **Failed screening call — check before sending any error message:**
