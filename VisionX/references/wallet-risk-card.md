@@ -8,10 +8,11 @@ Markdown blockquote — the last thing in the response.
 - The response is **incomplete** until this blockquote appears
 
 **Content:**
-- Risk level badge: 🟢 Low / 🟡 Medium / 🟠 Medium-High / 🔴 High — use the badge mapped in
-  `wallet-report.md` → Basic Info; never print the raw `level` string (e.g. `Severe`)
+- Risk level badge: 🟢 Low / 🟡 Medium-Low / 🟠 Medium-High / 🔴 High / 🔴 Severe /
+  🔴 Critical — use the badge mapped in `wallet-report.md` → Basic Info; never fold a level into a
+  neighbouring one
 - 1–2 sentences: key risk verdict summarizing the most important finding. **Alert-driven case:** when
-  the level is High/Medium while `highRiskAmount` is 0 and no exposure row is high-risk, the verdict
+  the level is above Low while `highRiskAmount` is 0 and no exposure row is high-risk, the verdict
   sentence MUST attribute the rating to the vendor alert flags (Step ④.5) — e.g. "多家厂商对该钱包
   触发告警，评级由告警驱动，敞口金额均为低风险" — never a high verdict over all-zero exposure with
   no stated basis
@@ -48,11 +49,11 @@ models to translate, never verbatim strings (see `SKILL.md` → Language).
 > ⚡ **Recommendation:** Avoid — do not transact with this address and report to your compliance team.
 ```
 
-🟡 Medium:
+🟡 Medium-Low:
 ```markdown
 ---
 
-> ### 🚨 Risk Verdict — 🟡 Medium Risk
+> ### 🚨 Risk Verdict — 🟡 Medium-Low Risk
 > Indirect exposure to high-risk counterparties was detected, though no direct sanctions or theft links were confirmed.
 >
 > ⚡ **Recommendation:** Proceed with caution — apply enhanced due diligence before transacting.

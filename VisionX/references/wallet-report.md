@@ -107,21 +107,26 @@ heading and a native Markdown table.
 |---|---|
 | Address | `walletCheck.data.address` |
 | Network | `walletCheck.data.network` |
-| Overall Risk Level | one of the four badges below, mapped from `walletCheck.data.level` |
+| Overall Risk Level | the badge below, mapped from `walletCheck.data.level` |
 | Identified Current Wallet Balance | `≈ $walletCheck.data.extra.walletBalance` USD |
 
-**`level` → badge mapping** (the server's vocabulary is wider than the four badges, so always map):
+**`level` → badge mapping** — every server value keeps its own label; the emoji and colour group
+neighbouring levels:
 
-| `walletCheck.data.level` | Render as |
-|---|---|
-| `Low` | 🟢 Low |
-| `Medium` | 🟡 Medium |
-| `Medium-High` / `MediumHigh` | 🟠 Medium-High |
-| `High` / `Severe` / `Critical` | 🔴 High |
+| `walletCheck.data.level` | Render as | 中文 | Colour |
+|---|---|---|---|
+| `Low` | 🟢 Low | 🟢 低风险 | `#7D8B00` |
+| `Medium-Low` / `MediumLow` | 🟡 Medium-Low | 🟡 中低风险 | `#C8A400` |
+| `Medium-High` / `MediumHigh` | 🟠 Medium-High | 🟠 中高风险 | `#FF9900` |
+| `High` | 🔴 High | 🔴 高风险 | `#E53030` |
+| `Severe` | 🔴 Severe | 🔴 严重风险 | `#E53030` |
+| `Critical` | 🔴 Critical | 🔴 极高风险 | `#E53030` |
 
-⛔ Output the mapped badge only. ❌ Never print the raw `level` string (e.g. `Severe`) and never
-concatenate the two (no `🔴 High (Severe)`). This holds everywhere the level appears — Metric Summary,
-Basic Info, Comprehensive Summary prose, and the Step ⑦ Risk Verdict card.
+⛔ Output the badge exactly as mapped. ❌ Never fold a level into a neighbouring one (`Medium-Low` is not
+shortened to `Medium`; `Severe` is not `High`), and never concatenate two labels (no `🔴 High (Severe)`). A
+`level` value not in the table → render the raw value verbatim with no emoji — never guess the
+closest row. This holds everywhere the level appears — Metric Summary, Basic Info, Comprehensive
+Summary prose, and the Step ⑦ Risk Verdict card.
 
 Render the disclaimer directly under the Basic Info table as a Markdown blockquote. Its meaning is
 fixed — never soften, shorten, or extend it — but it is rendered **in the turn's language**. English
@@ -300,7 +305,7 @@ The points below are the **content to weave into those sentences**, not a list t
 
 - Overall risk verdict — is this wallet safe to interact with?
 - What the risk level means practically
-- **If the rating is alert-driven** — level High/Medium while `highRiskAmount` is 0 and no exposure row
+- **If the rating is alert-driven** — level above Low while `highRiskAmount` is 0 and no exposure row
   is high-risk — say so explicitly, citing the Step ④.5 flags ("the rating is driven by wallet alerts
   raised by multiple vendors, not by exposure amounts"). Never leave a high rating over all-zero
   exposure unexplained.

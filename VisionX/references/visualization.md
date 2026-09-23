@@ -122,9 +122,10 @@ High-risk card amount colour: red `#CC1111` when the amount is > 0; default text
 are distinct fields — if they come out equal you copied one twice. They reappear in the Step ③
 Transaction Timeline table and must match there character for character.
 
-Level → badge colour: 🔴 High `#E53030` · 🟠 Medium-High `#FF9900` · 🟡 Medium `#C8A400` ·
-🟢 Low `#7D8B00`. Map `walletCheck.data.level` per `wallet-report.md` → Basic Info; never print the raw
-level string.
+Level → badge colour: 🔴 High / Severe / Critical `#E53030` · 🟠 Medium-High `#FF9900` ·
+🟡 Medium-Low `#C8A400` · 🟢 Low `#7D8B00`. Map `walletCheck.data.level` per
+`wallet-report.md` → Basic Info — the card shows that level's own label (`🟡 Medium-Low`, `🔴 Severe`),
+never a neighbouring one.
 
 ---
 
