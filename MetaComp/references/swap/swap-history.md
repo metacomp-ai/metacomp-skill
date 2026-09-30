@@ -37,7 +37,7 @@ For each record, show:
 4. **时间 / Time** — `tradeTime` as local time. For settled (`2`) you may also show `settleTime`; for cancelled (`3`) you may show `cancelTime`.
 5. **流水号 / Reference** — `tradeCode`.
 
-**CRITICAL — amounts are decimal strings, NOT minor units.** `baseQuantity`, `quoteAmount`, and `finalPrice` are already decimal strings — display them as-is. Do **NOT** divide by `10^decimals` (that rule applies to withdrawals, not swaps).
+**CRITICAL — amounts are decimal strings, NOT minor units.** `baseQuantity`, `quoteAmount`, and `finalPrice` are already decimal strings — display them as-is. Do **NOT** divide by `10^decimals`.
 
 ## STEP 3 — Pagination & single-trade detail
 
