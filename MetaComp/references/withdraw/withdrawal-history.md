@@ -43,8 +43,8 @@ Then, for each record, show in this priority order:
 2. **paymentCode** — the user's reference (e.g. `WD2026042709550001`)
 3. **createAt** — formatted as local time
 4. **statusDesc** — the authoritative status label (always present). Render it **only** from `statusDesc`, mapped to the user's language: `processing` → 处理中 / Processing; `completed` → 已完成 / Completed; `rejected` → 已拒绝 / Rejected; `cancel` → 已取消 / Cancelled. Do NOT display the raw numeric `status` code, and do NOT invent any other state (there is no "审核中 / under review" — anything not completed/rejected/cancel is `processing`).
-5. **currency** + **totalAmount** — display = `totalAmount / 10^decimals`. Use the currency decimals from the product base list.
-6. **receiveAmount** (what the payee actually receives) and **totalChargeAmount** (fees) — both in display units (minor → display)
+5. **currency** + **totalAmountDisplay** — copy verbatim (thousands separators allowed; never change the decimal digits). The server already converted minor units with the currency's real precision — do NOT compute `totalAmount / 10^decimals` and do NOT guess a precision. If it is null, show `—`.
+6. **receiveAmountDisplay** (what the payee actually receives) and **totalChargeAmountDisplay** (fees) — copy verbatim, same rules
 7. **purposeOfTransaction** — only when `paymentType === 22` (third-party). Skip for `paymentType === 21`.
 8. **pathTo** (e.g. `"BANK"`) if non-null — clarifies the routing destination
 
@@ -60,8 +60,8 @@ If user asks for more, increment `pageNum`. If they ask for a specific `paymentC
 - **API error / 5xx** → surface a short apology and the request id; do NOT silently retry more than once.
 - **Numeric fields:**
   - `fee`, `feeRate`, `additionalCharge` come as **strings** (treat as decimal strings).
-  - `totalAmount`, `receiveAmount`, `chargeAmount`, `totalChargeAmount`, `deductibleAmount` come as **numbers in minor units**.
-  - Always divide by `10^decimals` before displaying.
+  - `totalAmount`, `receiveAmount`, `chargeAmount`, `totalChargeAmount`, `deductibleAmount` are **minor units** — internal only.
+  - Display only the server-converted `totalAmountDisplay` / `receiveAmountDisplay` / `totalChargeAmountDisplay`.
 - **paymentType 21 vs 22:** only third-party records carry meaningful `purposeOfTransaction`; first-party is internal. Don't display `purposeOfTransaction` for `paymentType === 21`.
 
 ## Pitfalls
@@ -70,5 +70,5 @@ If user asks for more, increment `pageNum`. If they ask for a specific `paymentC
 - ❌ Do NOT confuse `payerAccountType` (user side) with `payeeAccountType` (the optional filter field, also the per-record type label) — use `payeeAccountType` both to scope the query and to label each row.
 - ❌ Do NOT read the raw numeric `status` code and label it yourself (it must never surface as "审核中 / under review" or any custom text). The server already collapses status into `statusDesc`; render only that, mapped per STEP 3.4.
 - ❌ Do NOT call `get_deposit_list` for withdrawal queries — they are separate tools, separate endpoints.
-- ❌ Do NOT show raw minor-unit amounts to the user — always convert via decimals first.
+- ❌ Do NOT show raw minor-unit amounts, and do NOT convert them yourself — render the `*Display` fields.
 - ❌ Do NOT expose `poboInfo` internals, `proof`, or `fileRef` to the user.
