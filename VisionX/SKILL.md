@@ -1,13 +1,13 @@
 ---
 name: VisionX
-version: 2.4.2
+version: 2.5.0
 description: >
   MetaComp VisionX — Web3 wallet & transaction security screening. Use it
   whenever the user wants to CHECK / SCAN / VERIFY a wallet address or a
   transaction hash (check address, verify wallet, scan address, address risk,
   查地址, 地址安全, 查钱包, 钱包安全, 地址风险), pastes an address shaped like
-  0x… (Ethereum), T… (Tron), bc1…/1…/3… (Bitcoin), or a bare base58 string
-  (Solana), provides a transaction hash to screen, or asks any Web3 security /
+  0x… (Ethereum / BNB Smart Chain (BSC) / Arbitrum), T… (Tron), bc1…/1…/3…
+  (Bitcoin), or a bare base58 string (Solana), provides a transaction hash to screen, or asks any Web3 security /
   risk / scam / AML / suspicious-activity question ("is this wallet safe", "这个地址安全吗",
   "是不是诈骗地址", "这笔交易有风险吗"). Trigger even without the words
   "MetaComp" or "VisionX"; when unsure whether a string is a wallet address
@@ -153,7 +153,7 @@ What the user is paying for is the **numbers**, not the narration. When in doubt
 
 # VisionX — Web3 wallet / transaction security
 
-Triggered by a wallet address (`0x…`, Bitcoin/Tron/Solana), a transaction hash, or a Web3 security / risk / scam / suspicious-activity question. This skill has no account/KYC/auth flow — authorization is proven by the screening call itself (see PRE-ANALYSIS CHECKLIST).
+Triggered by a wallet address (`0x…` on Ethereum/BNB Smart Chain/Arbitrum, Bitcoin/Tron/Solana), a transaction hash, or a Web3 security / risk / scam / suspicious-activity question. This skill has no account/KYC/auth flow — authorization is proven by the screening call itself (see PRE-ANALYSIS CHECKLIST).
 
 Branding: **MetaComp VisionX** (see Branding at the end of this file).
 
@@ -210,11 +210,26 @@ address matches none of the known patterns below.
 
 | Address format                              | network  |
 |---------------------------------------------|----------|
-| `0x` + 40 hex chars                         | Ethereum |
+| `0x` + 40 hex chars                         | EVM — see EVM chain selection below |
 | starts with `T` (base58, ~34 chars)         | Tron     |
 | starts with `1` / `3` / `bc1`               | Bitcoin  |
 | base58, 32–44 chars, none of the prefixes above | Solana |
 | none of the above / cannot be determined    | ASK the user which network (only here) |
+
+### EVM chain selection (`0x` addresses)
+
+A `0x` address is identical on Ethereum, BNB Smart Chain and Arbitrum, but each chain's funds, history and risk are independent. Pick the chain from the user's words (current or earlier in the conversation):
+
+| User mentions (any language, case-insensitive) | `network` value (exact string) |
+|---|---|
+| BSC, BNB, BNB Chain, BNB Smart Chain, BEP20, Binance Smart Chain, 币安链, 币安智能链 | `BNB Smart Chain` |
+| ARB, Arbitrum, Arbitrum One | `Arbitrum` |
+| ETH, Ethereum, ERC20, 以太坊, or no chain mentioned | `Ethereum` |
+
+- Pass the exact `network` string from the table. Never send `BSC`, `BNB`, `ARB` or `Arbitrum One` — the upstream rejects them.
+- Default (no chain mentioned) is `Ethereum`; do NOT ask. In the report, state in one sentence (user's language) that the result covers Ethereum only and that the same address can be screened on BNB Smart Chain or Arbitrum on request.
+- A result on one EVM chain never speaks for another. If the user asks about another EVM chain after a report, run a new screening with that chain's `network` — do not reuse or extrapolate the earlier result.
+- Other EVM chains (Polygon, Optimism, Base, Avalanche…) are NOT supported — say so and do not call the tool with them or substitute Ethereum.
 
 - Wallet query: infer from `walletAddress`.
 - Transaction query: infer from the `from`/`to` addresses (both sides are the same network).
@@ -524,7 +539,7 @@ One tool covers wallet-only, transaction-only, and combined screening. **Billed 
 
 ```json
 {
-  "network": "Bitcoin|Ethereum|Tron|Solana",
+  "network": "Bitcoin|Ethereum|Tron|Solana|BNB Smart Chain|Arbitrum",
   "walletAddress": "0x...",            // optional — wallet to screen
   "transactionDetails": [{             // optional — transactions to screen
     "hash": "0x...", "asset": "USDT",
